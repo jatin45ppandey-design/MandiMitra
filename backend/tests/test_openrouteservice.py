@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from app.main import app
-from app.schemas.prices import MandiSnapshot, MarketPrice, SnapshotMetadata
+from app.schemas.prices import MarketPrice
 from app.schemas.road_comparison import RoadCompareRequest
 from app.services.openrouteservice import (
     OpenRouteServiceClient,
