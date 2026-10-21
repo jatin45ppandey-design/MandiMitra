@@ -27,7 +27,7 @@ def import_verified(snapshot: MandiSnapshot) -> int:
                         :grade,:report_date,CAST(:record AS jsonb),:source)
                 ON CONFLICT (identity) DO UPDATE SET
                     record=EXCLUDED.record, source=EXCLUDED.source,
-                    imported_at=now()
+                    imported_at=mandi_observations.imported_at
             """), {
                 "identity": _identity(item), "state": item.state,
                 "district": item.district, "market": item.market,
