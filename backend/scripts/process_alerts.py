@@ -1,6 +1,6 @@
 """Idempotent threshold-crossing worker for newly reported verified observations."""
 import json
-from datetime import timezone
+from datetime import UTC
 from uuid import uuid4
 
 from sqlalchemy import text
@@ -37,7 +37,7 @@ def process() -> int:
                 if not same:
                     continue
                 # Imported history before an alert can establish a baseline without notifying.
-                date_created = alert["created_at"].astimezone(timezone.utc).date()
+                date_created = alert["created_at"].astimezone(UTC).date()
                 newly_reported = (item["imported_at"] >= alert["created_at"]
                                   and record.arrival_date >= date_created)
                 if newly_reported and crosses(alert, previous, record):
