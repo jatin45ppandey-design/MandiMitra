@@ -46,7 +46,13 @@ def main() -> None:
     parser.add_argument("--file", type=Path, required=True)
     parser.add_argument("--source-url", required=True)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--confirm-official-source", action="store_true",
+        help="Confirm this file was downloaded directly from the stated official OGD page",
+    )
     args = parser.parse_args()
+    if not args.dry_run and not args.confirm_official_source:
+        parser.error("Official source confirmation required for persistent import")
     accepted, rejected = import_csv(args.file, source_url=args.source_url, dry_run=args.dry_run)
     print(f"Validated {accepted} records, rejected {rejected}. Dry run: {args.dry_run}")
 
