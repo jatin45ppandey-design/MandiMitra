@@ -5,6 +5,8 @@ This diagnostic only reads local files/config; it never calls external APIs.
 """
 from pathlib import Path
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.core.config import settings
 from app.repositories.prices import read_prices
 from app.services.nearby import read_verified_coordinates
@@ -50,12 +52,12 @@ def diagnostic_lines() -> list[str]:
             f"Verified price records: {len(snapshot.records) if snapshot.metadata.verified else 0}",
             f"Latest reported price date: {snapshot.metadata.latest_report_date or 'NONE'}",
         ])
-    except Exception:
+    except (OSError, RuntimeError, ValueError, SQLAlchemyError):
         status.append("Verified price records: UNAVAILABLE (check storage and migration)")
     try:
         coords = read_verified_coordinates()
         status.append(f"Verified mandi coordinates: {len(coords)}")
-    except Exception:
+    except (OSError, RuntimeError, ValueError, SQLAlchemyError):
         status.append("Verified mandi coordinates: UNAVAILABLE")
 
     status.append(
