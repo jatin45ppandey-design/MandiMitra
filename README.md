@@ -2,7 +2,13 @@
 
 **सही भाव, बेहतर फैसला।** A Hindi-first, mobile-friendly application to help Indian farmers find **reported** mandi rates, compare markets, review genuine historical observations, and eventually estimate earnings after transport.
 
-> **Status:** Phase 0 foundation. The UI and backend run, but no government dataset has been imported. All price views intentionally show an empty state rather than made-up prices.
+> **Status:** The responsive frontend now implements public price search, verified-rate cards, trends, like-for-like mandi comparison, transport estimates, optional Supabase magic-link sessions, in-app alerts, local preferences, Hindi voice, sharing, and an offline PWA shell. No government dataset has been imported, so price views intentionally show honest empty states rather than made-up prices.
+
+## Frontend product flow
+
+The primary flow is location → crop → optional variety/grade → latest reported price → trend → mandi comparison → transport-adjusted estimate. Public prices never require sign-in. Account features remain visibly unavailable until Supabase is configured, and SMS/WhatsApp are labelled as future integrations rather than working delivery channels.
+
+The service worker caches only application assets and the public GET price endpoints. Authenticated alerts, notifications, preferences, and sensitive account responses are excluded from runtime caching.
 
 ## Repository layout
 
@@ -59,7 +65,16 @@ npm run dev
 
 Frontend: http://localhost:5173
 
-The homepage must remain usable when the backend is unavailable (it will display a small status message). The government API key is not needed for Phase 0.
+Optional account features require these public browser values in `frontend/.env`:
+
+```dotenv
+VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLIC_PUBLISHABLE_KEY
+```
+
+Never place a database password, Supabase service-role key, messaging token, or data.gov.in API key in any `VITE_*` variable.
+
+The public shell remains usable when the backend is unavailable and can read the bundled verified snapshot. The government API key stays backend-only.
 
 ## Verification
 
@@ -74,7 +89,7 @@ python -m pytest
 python -m ruff check .
 ```
 
-A production PWA service worker must be tested after building and serving over HTTPS or localhost: `npm run build` then `npm run preview`. A development-server load alone is not an offline test. Android-installable PNG icons have not yet been added.
+A production PWA service worker must be tested after building and serving over HTTPS or localhost: `npm run build` then `npm run preview`. A development-server load alone is not an offline test. The manifest currently uses the bundled SVG app icon; add dedicated maskable PNG icons before store-style distribution testing.
 
 ## API key (Phase 1 only)
 
@@ -151,8 +166,8 @@ dates, whether the fetch was partial, and the set of applied filters.
 
 **Important limitation:** Importing the current daily-price resource does not
 guarantee seven days of history. Only draw trends for genuinely reported dates.
-The Phase 0 frontend shell still needs Phase 2 wiring before imported rates
-appear automatically in the UI. Phase 1 ingestion does **not** imply a live
+The frontend consumes the public price routes, so verified imported rates appear
+through the normal selection flow. Phase 1 ingestion does **not** imply a live
 production feed or comprehensive nearby-mandi coverage.
 
 ## Next phases

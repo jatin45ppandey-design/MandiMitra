@@ -1,6 +1,8 @@
 """Explicit migrations. Never automatically modify a hosted DB on API startup."""
 from pathlib import Path
+
 from sqlalchemy import text
+
 from app.db.postgres import engine
 
 

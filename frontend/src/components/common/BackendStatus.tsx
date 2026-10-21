@@ -1,23 +1,26 @@
 import { useQuery } from '@tanstack/react-query'
+import { Cloud, CloudOff, LoaderCircle } from 'lucide-react'
 import { getHealth } from '../../services/api'
-import type { Language } from '../../i18n/translations'
-import { copy } from '../../i18n/translations'
+import { useAppState } from '../../app/app-state-context'
+import { translate } from '../../i18n/translations'
 
-export function BackendStatus({ language }: { language: Language }) {
+export function BackendStatus() {
+  const { language } = useAppState()
   const { isPending, isError } = useQuery({
     queryKey: ['backend-health'],
-    queryFn: getHealth,
+    queryFn: ({ signal }) => getHealth(signal),
     retry: false,
-    staleTime: 30_000
+    staleTime: 30_000,
   })
   const label = isPending
-    ? copy[language].apiChecking
+    ? translate(language, 'backendChecking')
     : isError
-      ? copy[language].apiOffline
-      : copy[language].apiConnected
+      ? translate(language, 'backendUnavailable')
+      : translate(language, 'backendConnected')
+  const Icon = isPending ? LoaderCircle : isError ? CloudOff : Cloud
   return (
-    <div role="status" className="flex items-center gap-2 text-xs text-emerald-950/60">
-      <span aria-hidden="true" className={`h-2 w-2 rounded-full ${isPending ? 'bg-amber-500' : isError ? 'bg-slate-400' : 'bg-emerald-500'}`} />
+    <div role="status" className="inline-flex min-h-9 items-center gap-2 text-xs font-medium text-ink-600">
+      <Icon size={15} className={isPending ? 'animate-spin' : ''} aria-hidden="true" />
       {label}
     </div>
   )

@@ -1,7 +1,9 @@
 from decimal import Decimal
 from typing import Literal
 from uuid import UUID
+
 from pydantic import BaseModel, Field
+
 
 class AlertCreate(BaseModel):
     state: str = Field(min_length=1, max_length=120)

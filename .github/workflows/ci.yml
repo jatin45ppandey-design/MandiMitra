@@ -31,7 +31,6 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install -e ".[dev]"
-      # Run tests even when legacy lint warnings remain; both must pass.
       - run: python -m pytest
       - run: python -m ruff check .
 

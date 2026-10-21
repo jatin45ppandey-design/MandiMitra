@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, Query
 
 from app.repositories.prices import read_prices
-from app.schemas.road_comparison import RoadCompareRequest, RoadCompareResponse
 from app.schemas.prices import PriceResponse
+from app.schemas.road_comparison import RoadCompareRequest, RoadCompareResponse
 from app.services.market_comparison import compare_same_district
 from app.services.nearby import find_nearby, read_verified_coordinates
+from app.services.openrouteservice import RoutingNotConfigured, RoutingUnavailable
 from app.services.price_service import build_price_response, filter_prices
 from app.services.road_comparison import compare_roads
-from app.services.openrouteservice import RoutingUnavailable, RoutingNotConfigured
 
 router = APIRouter(prefix="/markets", tags=["markets"])
 

@@ -24,7 +24,7 @@ def _fixture(market: str, report_date: date) -> MarketPrice:
     return MarketPrice(
         state="Test State", district="Test District",
         market=market, commodity="Wheat", variety="Dara", grade="FAQ",
-        modal_price=Decimal("2500"), arrival_date=report_date,
+        modal_price=Decimal(2500), arrival_date=report_date,
     )
 
 
@@ -148,15 +148,15 @@ def test_comparison_preserves_latest_rate_and_costs(monkeypatch) -> None:
     assert present and missing == 0
     assert len(results) == 2
     assert results[0].observation.market == "Market B"
-    assert results[0].estimate.net_proceeds == Decimal("24050.00")
+    assert results[0].estimate.net_proceeds == Decimal(24050)
     assert results[1].observation.arrival_date == date(2026, 10, 20)
-    assert results[1].estimate.net_proceeds == Decimal("23300.00")
+    assert results[1].estimate.net_proceeds == Decimal(23300)
 
 
 def test_road_endpoint_no_registry_requires_no_api_key(monkeypatch) -> None:
     monkeypatch.setattr(
         "app.services.road_comparison.read_verified_coordinates",
-        lambda: {},
+        dict,
     )
     response = TestClient(app).post("/api/v1/markets/road-compare", json={
         "state": "Test State", "commodity": "Wheat",

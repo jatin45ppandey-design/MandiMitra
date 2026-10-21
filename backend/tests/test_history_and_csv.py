@@ -73,12 +73,12 @@ def test_csv_dry_run_does_not_create_history(tmp_path, monkeypatch) -> None:
             "grade", "arrival_date", "min_price", "max_price", "modal_price",
         ])
         writer.writeheader()
-        writer.writerow(dict(
-            state="Uttar Pradesh", district="Lucknow", market="Market A",
-            commodity="Wheat", variety="Dara", grade="FAQ",
-            arrival_date="20/10/2026", min_price="2100", max_price="2300",
-            modal_price="2200",
-        ))
+        writer.writerow({
+            "state": "Uttar Pradesh", "district": "Lucknow", "market": "Market A",
+            "commodity": "Wheat", "variety": "Dara", "grade": "FAQ",
+            "arrival_date": "20/10/2026", "min_price": "2100", "max_price": "2300",
+            "modal_price": "2200",
+        })
     db_path = tmp_path / "history.sqlite3"
     monkeypatch.setattr(
         "scripts.import_csv.HistoryRepository",

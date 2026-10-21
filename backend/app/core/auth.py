@@ -18,7 +18,7 @@ async def current_user_id(authorization: str | None = Header(default=None)) -> s
             response = await client.get(
                 f"{settings.supabase_url.rstrip('/')}/auth/v1/user",
                 headers={"Authorization": f"Bearer {token}",
-                         "apikey": settings.supabase_anon_key},
+                         "apikey": settings.supabase_client_key},
             )
     except httpx.RequestError:
         raise HTTPException(status_code=503, detail="Authentication service unavailable") from None

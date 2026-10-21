@@ -1,5 +1,6 @@
 """Persist normalized verified records into Supabase PostgreSQL."""
 import json
+
 from sqlalchemy import text
 
 from app.db.postgres import engine

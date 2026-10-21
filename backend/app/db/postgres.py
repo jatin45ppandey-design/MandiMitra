@@ -1,6 +1,7 @@
 """Supabase is managed PostgreSQL. Use a server-side connection URL only."""
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
+
 from app.core.config import settings
 
 _engine: Engine | None = None
