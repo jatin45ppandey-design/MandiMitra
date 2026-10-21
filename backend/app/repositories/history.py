@@ -32,7 +32,10 @@ class HistoryRepository:
                 payload TEXT NOT NULL
             )
         """)
-        db.execute("CREATE INDEX IF NOT EXISTS idx_observations_lookup ON observations (state, district, commodity, report_date)")
+        db.execute(
+            "CREATE INDEX IF NOT EXISTS idx_observations_lookup "
+            "ON observations (state, district, commodity, report_date)"
+        )
         db.commit()
         return db
 
@@ -69,7 +72,9 @@ class HistoryRepository:
                 records=[],
             )
         with self._connect() as db:
-            rows = db.execute("SELECT payload FROM observations ORDER BY report_date DESC").fetchall()
+            rows = db.execute(
+                "SELECT payload FROM observations ORDER BY report_date DESC"
+            ).fetchall()
         records = [MarketPrice.model_validate_json(row[0]) for row in rows]
         return MandiSnapshot(
             metadata=SnapshotMetadata(
