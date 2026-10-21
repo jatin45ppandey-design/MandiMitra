@@ -8,6 +8,7 @@ from app.db.postgres import engine
 from app.schemas.prices import MarketPrice
 from app.services.alert_engine import matches
 
+
 def process() -> int:
     count = 0
     with engine().begin() as db:
