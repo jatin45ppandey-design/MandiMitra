@@ -1,9 +1,9 @@
 """Regression tests for price comparisons; all rates here are synthetic fixtures."""
 
-from datetime import UTC, date, datetime
+from datetime import date
 from decimal import Decimal
 
-from app.schemas.prices import MandiSnapshot, MarketPrice, SnapshotMetadata
+from app.schemas.prices import MarketPrice
 from app.services.price_service import latest_per_market_and_variety
 
 
