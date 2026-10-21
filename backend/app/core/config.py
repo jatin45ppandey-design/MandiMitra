@@ -10,6 +10,11 @@ class Settings(BaseSettings):
     database_url: str = ""
     supabase_url: str = ""
     supabase_anon_key: str = ""
+    supabase_publishable_key: str = ""
+
+    @property
+    def supabase_client_key(self) -> str:
+        return self.supabase_publishable_key or self.supabase_anon_key
     database_backend: str = "snapshot"
     api_prefix: str = "/api/v1"
 
