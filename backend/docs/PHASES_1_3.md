@@ -5,7 +5,7 @@
 - API access requires a **new private** `DATA_GOV_API_KEY` in `backend/.env`.
 - For API-free imports, download a **genuine** CSV from data.gov.in and run:
   `python -m scripts.import_csv --file PATH.csv --source-url https://data.gov.in/catalog/current-daily-price-various-commodities-various-markets-mandi --dry-run`
-- Remove `--dry-run` once data and CSV header mapping have been verified.
+- Remove `--dry-run` and add `--confirm-official-source` once the operator has verified the downloaded file and the source URL.
 - No synthetic production prices and no automatic trust of arbitrary user-uploaded CSV.
 - Official API schema and authenticated resource access remain **unverified** until an actual key-based request succeeds.
 
