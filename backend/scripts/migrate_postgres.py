@@ -5,6 +5,7 @@ from sqlalchemy import text
 
 from app.db.postgres import engine
 
+
 def main() -> None:
     schema = (Path(__file__).resolve().parents[1] / "app" / "db" / "schema.sql").read_text()
     # Migration is separated by statements (no SQL semicolons in literals).
