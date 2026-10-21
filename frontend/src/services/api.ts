@@ -15,6 +15,7 @@ import type {
   RoadCompareInput,
   RoadCompareResponse,
   DataCoverageResponse,
+  NetCompareResponse,
 } from '../types/mandi'
 
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api/v1').replace(
@@ -356,4 +357,8 @@ export function askAdvisor(input: {
   variety: string; grade: string; market?: string; language: 'hi' | 'en'
 }): Promise<AdvisorAnswer> {
   return request<AdvisorAnswer>('/advisor/ask', {method:'POST',body:JSON.stringify(input)})
+}
+
+export function compareNetDeals(input:RoadCompareInput):Promise<NetCompareResponse> {
+  return request<NetCompareResponse>('/markets/net-compare',{method:'POST',body:JSON.stringify(input)})
 }

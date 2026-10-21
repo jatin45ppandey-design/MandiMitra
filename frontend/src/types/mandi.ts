@@ -172,3 +172,14 @@ export interface DataCoverageResponse {
   verified_market_coordinates: number
   note: string
 }
+
+export interface NetMarketResult extends RoadMarketResult {
+  age_days: number
+  eligible: boolean
+  exclusion_reason: string | null
+}
+export interface NetCompareResponse extends Omit<RoadCompareResponse,'status'|'markets'> {
+  status: 'ok' | 'input_required' | 'insufficient_fresh_data' | 'coordinates_unavailable' | 'no_matching_verified_markets'
+  markets: NetMarketResult[]
+  best_market: string | null
+}

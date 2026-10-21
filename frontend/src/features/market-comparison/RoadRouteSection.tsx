@@ -5,7 +5,7 @@ import { useAppState } from '../../app/app-state-context'
 import { Button } from '../../components/ui/Button'
 import { FeedbackPanel } from '../../components/ui/FeedbackPanel'
 import { translate } from '../../i18n/translations'
-import { compareRoadRoutes } from '../../services/api'
+import { compareNetDeals } from '../../services/api'
 import type { RoadCompareInput } from '../../types/mandi'
 import { formatCurrency, formatReportedDate } from '../../utils/format'
 
@@ -28,7 +28,7 @@ export function RoadRouteSection({ state, commodity, variety, grade }: RoadRoute
   const [fixedCost, setFixedCost] = useState('0')
   const [message, setMessage] = useState('')
   const [locating, setLocating] = useState(false)
-  const mutation = useMutation({ mutationFn: compareRoadRoutes })
+  const mutation = useMutation({ mutationFn: compareNetDeals })
 
   const submit = (coords?: { latitude: number; longitude: number }) => {
     setMessage('')
@@ -161,7 +161,13 @@ export function RoadRouteSection({ state, commodity, variety, grade }: RoadRoute
       {data?.status === 'no_matching_verified_markets' ? (
         <div className="mt-5"><FeedbackPanel compact title={t('roadNoMarkets')} /></div>
       ) : null}
-      {data?.status === 'ok' ? (
+      {data?.status === 'input_required' || data?.status === 'insufficient_fresh_data' ? (
+        <div className="mt-5"><FeedbackPanel compact title={data.message} /></div>
+      ) : null}
+      {data?.best_market ? <p className="mt-5 rounded-xl bg-sage-100 p-4 text-sm font-bold text-forest-950">
+        {language === 'hi' ? 'अनुमानित शुद्ध कमाई के अनुसार सर्वोत्तम' : 'Highest eligible estimated net'}: {data.best_market}
+      </p> : null}
+      {data && ['ok', 'input_required', 'insufficient_fresh_data'].includes(data.status) ? (
         <div className="mt-6" aria-live="polite">
           <div className="mb-4 flex items-center gap-2 text-sm font-medium text-forest-800">
             <Truck size={18} aria-hidden="true" /> {t('roadDistance')} · OpenRouteService
@@ -199,6 +205,9 @@ export function RoadRouteSection({ state, commodity, variety, grade }: RoadRoute
                     ) : <p className="text-sm text-red-800">{t('roadUnreachable')}</p>}
                   </div>
                 </div>
+                {!market.eligible ? <p className="mt-3 text-xs font-medium text-harvest-600">
+                  {language === 'hi' ? 'तुलना की रैंकिंग में शामिल नहीं' : 'Excluded from best-deal ranking'}: {market.exclusion_reason}
+                </p> : null}
                 {market.estimate ? (
                   <dl className="mt-4 grid gap-3 border-t border-forest-900/10 pt-4 sm:grid-cols-2">
                     <div>
