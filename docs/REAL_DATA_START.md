@@ -15,6 +15,45 @@ DATABASE_BACKEND=snapshot
 The public URL and Supabase publishable key belong in
 `frontend/.env.local`. Never put OGD or ORS secrets in `VITE_*`.
 
+## If the official API times out
+
+A timeout does **not** prove the API key is wrong. It also does not confirm
+government records are unavailable. New fetch logic retries transient
+read/connect timeouts once (45 seconds each by default) and reports HTTP
+401/403/429 separately without printing the credential.
+
+From the **backend** folder on Windows PowerShell:
+
+```powershell
+# Non-secret connection checks; they do not validate an API key.
+Resolve-DnsName api.data.gov.in
+Test-NetConnection api.data.gov.in -Port 443
+
+# Probe just five government rows first. No file/database writes.
+python -m scripts.sync_mandi_catalog --page-size 5 --max-pages 1 --dry-run
+```
+
+If you still see a read timeout, try a different internet connection
+(e.g. phone hotspot) to distinguish ISP/campus firewall/proxy trouble
+from government service latency. Avoid looping the full nationwide
+import while the API is unreachable.
+
+Optional, in your private `backend/.env`:
+
+```dotenv
+DATA_GOV_TIMEOUT_SECONDS=60
+DATA_GOV_MAX_RETRIES=1
+```
+
+Allowed timeout: 5–120 seconds. Retries: 0–3; the default is one.
+Do not configure unlimited retries because government API quotas apply.
+Do not share full URLs containing `api-key`, print response traces with
+credentials, or paste tokens into public support chats.
+
+Only after the five-row probe succeeds should you try a 100-row
+dry-run, followed by a real import. The importer never substitutes
+fabricated mandi rates for unavailable official records.
+
 ## 2. Import real records without needing Supabase to be online
 
 From the repository root (Windows PowerShell):
