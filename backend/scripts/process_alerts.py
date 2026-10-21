@@ -3,10 +3,10 @@ import json
 from uuid import uuid4
 
 from sqlalchemy import text
+
 from app.db.postgres import engine
 from app.schemas.prices import MarketPrice
 from app.services.alert_engine import matches
-
 
 def process() -> int:
     count = 0
