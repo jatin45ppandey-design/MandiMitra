@@ -39,3 +39,9 @@ def preferences(
     request: PreferenceUpdate, owner: str = Depends(current_user_id),
 ) -> PreferenceUpdate:
     return PreferenceUpdate.model_validate(repository.save_preferences(owner, request))
+
+
+@router.get("/preferences", response_model=PreferenceUpdate | None)
+def get_preferences(owner: str = Depends(current_user_id)) -> PreferenceUpdate | None:
+    saved = repository.get_preferences(owner)
+    return PreferenceUpdate.model_validate(saved) if saved else None
