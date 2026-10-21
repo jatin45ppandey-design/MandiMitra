@@ -6,6 +6,7 @@ from sqlalchemy import text
 from app.db.postgres import engine
 from app.schemas.alerts import AlertCreate, PreferenceUpdate
 
+
 def create_alert(owner: str, alert: AlertCreate) -> dict:
     alert_id = str(uuid4())
     with engine().begin() as db:
