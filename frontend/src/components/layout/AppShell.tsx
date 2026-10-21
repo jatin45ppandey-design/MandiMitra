@@ -1,4 +1,4 @@
-import { Bell, House, MapPinned, Sprout, UserRound } from 'lucide-react'
+import { Bell, House, MapPinned, MessageCircle, Sprout, UserRound } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAppState } from '../../app/app-state-context'
 import { translate } from '../../i18n/translations'
@@ -10,6 +10,7 @@ const links = [
   { to: '/', key: 'navHome', icon: House, end: true },
   { to: '/compare', key: 'navCompare', icon: MapPinned, end: false },
   { to: '/alerts', key: 'navAlerts', icon: Bell, end: false },
+  { to: '/advisor', key: 'navAdvisor', icon: MessageCircle, end: false },
   { to: '/profile', key: 'navProfile', icon: UserRound, end: false },
 ] as const
 
@@ -50,7 +51,7 @@ export function AppShell() {
                   }`
                 }
               >
-                {translate(language, key)}
+                {key === 'navAdvisor' ? (language === 'hi' ? 'सलाह' : 'Advisor') : translate(language, key as Parameters<typeof translate>[1])}
               </NavLink>
             ))}
           </nav>
@@ -67,7 +68,7 @@ export function AppShell() {
         </div>
       </footer>
       <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-40 bg-paper/96 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-16px_38px_-28px_rgb(18_53_42_/_0.65)] backdrop-blur-sm md:hidden">
-        <div className="mx-auto grid max-w-lg grid-cols-4">
+        <div className="mx-auto grid max-w-lg grid-cols-5">
           {links.map(({ to, key, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -80,7 +81,7 @@ export function AppShell() {
               }
             >
               <Icon size={20} strokeWidth={2.1} aria-hidden="true" />
-              <span>{translate(language, key)}</span>
+              <span>{key === 'navAdvisor' ? (language === 'hi' ? 'सलाह' : 'Advisor') : translate(language, key as Parameters<typeof translate>[1])}</span>
             </NavLink>
           ))}
         </div>

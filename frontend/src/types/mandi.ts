@@ -117,6 +117,10 @@ export interface NotificationEvent {
   channel: string
   status: string
   created_at: string
+  commodity?: string | null
+  market?: string | null
+  report_date?: string | null
+  modal_price?: string | null
 }
 
 export interface NotificationResponse {
@@ -171,4 +175,15 @@ export interface DataCoverageResponse {
   source: string
   verified_market_coordinates: number
   note: string
+}
+
+export interface NetMarketResult extends RoadMarketResult {
+  age_days: number
+  eligible: boolean
+  exclusion_reason: string | null
+}
+export interface NetCompareResponse extends Omit<RoadCompareResponse,'status'|'markets'> {
+  status: 'ok' | 'input_required' | 'insufficient_fresh_data' | 'coordinates_unavailable' | 'no_matching_verified_markets'
+  markets: NetMarketResult[]
+  best_market: string | null
 }

@@ -164,7 +164,12 @@ export function AlertManager({ market }: { market: MarketSearchState }) {
           <div className="mt-4 grid gap-3">
             {notificationsQuery.data?.items.map((item) => (
               <article key={item.id} className="rounded-2xl bg-sage-50 p-4">
-                <p className="font-semibold text-forest-950">{language === 'hi' ? 'भाव अलर्ट का रिकॉर्ड मिला' : 'A price alert matched a record'}</p>
+                <p className="font-semibold text-forest-950">{item.commodity && item.market
+                  ? item.commodity + ' · ' + item.market
+                  : language === 'hi' ? 'भाव अलर्ट का रिकॉर्ड मिला' : 'A price alert matched a record'}</p>
+                {item.modal_price ? <p className="mt-1 text-lg font-bold text-forest-950">{formatCurrency(Number(item.modal_price),language)}</p> : null}
+                {item.report_date ? <p className="mt-1 text-xs text-ink-600">
+                  {language==='hi'?'रिपोर्ट: ':'Reported: '}{item.report_date}</p> : null}
                 <p className="mt-2 inline-flex items-center gap-2 text-xs text-ink-600"><CalendarDays size={14} aria-hidden="true" /> {formatFetchedAt(item.created_at, language)}</p>
                 <p className="mt-1 text-xs text-ink-500">{item.status} · {item.channel}</p>
               </article>

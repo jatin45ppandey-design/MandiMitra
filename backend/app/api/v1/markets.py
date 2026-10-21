@@ -5,6 +5,7 @@ from app.schemas.prices import PriceResponse
 from app.schemas.road_comparison import RoadCompareRequest, RoadCompareResponse
 from app.services.market_comparison import compare_same_district
 from app.services.nearby import find_nearby, read_verified_coordinates
+from app.services.net_decision import NetDecisionResponse, build_decision
 from app.services.openrouteservice import RoutingNotConfigured, RoutingUnavailable
 from app.services.price_service import build_price_response, filter_prices
 from app.services.road_comparison import compare_roads
@@ -109,3 +110,23 @@ async def road_compare_markets(request: RoadCompareRequest) -> RoadCompareRespon
             "Compare varieties, grade and freshness before choosing."
         ),
     )
+
+
+@router.post("/net-compare", response_model=NetDecisionResponse)
+async def net_compare_markets(request: RoadCompareRequest) -> NetDecisionResponse:
+    """Price minus farmer-supplied road costs; only recent verified matches can rank."""
+    snapshot = read_prices()
+    try:
+        results, missing, registry_present = await compare_roads(snapshot.records, request)
+    except RoutingNotConfigured as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from None
+    except RoutingUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from None
+    if not registry_present:
+        return NetDecisionResponse(status="coordinates_unavailable",
+                                   message="Verified mandi coordinate registry unavailable")
+    if not results:
+        return NetDecisionResponse(status="no_matching_verified_markets",
+                                   excluded_without_coordinates=missing,
+                                   message="No comparable verified markets within radius")
+    return build_decision(results, excluded_without_coordinates=missing)

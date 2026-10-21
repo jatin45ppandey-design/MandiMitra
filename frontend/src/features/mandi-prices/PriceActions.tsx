@@ -13,6 +13,7 @@ interface PriceActionsProps {
 export function PriceActions({ record, language }: PriceActionsProps) {
   const [speaking, setSpeaking] = useState(false)
   const [message, setMessage] = useState('')
+  const [speechRate, setSpeechRate] = useState(0.85)
   const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window
 
   useEffect(() => () => window.speechSynthesis?.cancel(), [])
@@ -37,6 +38,7 @@ export function PriceActions({ record, language }: PriceActionsProps) {
     }
     const utterance = new SpeechSynthesisUtterance(summary.replaceAll('\n', '. '))
     utterance.lang = language === 'hi' ? 'hi-IN' : 'en-IN'
+    utterance.rate = speechRate
     utterance.onend = () => setSpeaking(false)
     utterance.onerror = () => setSpeaking(false)
     window.speechSynthesis.cancel()
@@ -75,6 +77,15 @@ export function PriceActions({ record, language }: PriceActionsProps) {
           {translate(language, 'share')}
         </Button>
       </div>
+      {canSpeak ? <label className="mt-3 flex items-center gap-2 text-xs font-medium text-sage-100">
+        {language==='hi'?'आवाज़ की गति':'Speaking speed'}
+        <select value={speechRate} onChange={e=>setSpeechRate(Number(e.target.value))}
+          className="min-h-9 rounded-lg bg-white px-2 text-sm text-forest-950">
+          <option value={0.7}>{language==='hi'?'धीमी':'Slow'}</option>
+          <option value={0.85}>{language==='hi'?'सामान्य':'Normal'}</option>
+          <option value={1.05}>{language==='hi'?'तेज़':'Fast'}</option>
+        </select>
+      </label> : null}
       <p aria-live="polite" className="mt-2 min-h-5 text-xs text-ink-600">{message}</p>
     </div>
   )

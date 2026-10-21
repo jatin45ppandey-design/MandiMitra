@@ -174,3 +174,10 @@ production feed or comprehensive nearby-mandi coverage.
 
 See [docs/implementation-plan.md](docs/implementation-plan.md).
 
+
+
+## Feature branch enhancements (phases 1–8)
+
+Phases 1–4 introduce verified CSV-to-PWA snapshot export, grade-aware trends, date-range and gaps, offline comparison/trends, and a farmer-first price movement card. Phases 5–8 (stacked branch) introduce freshness-aware transport net comparison, server-side Gemma Q&A grounded in genuine evidence, price threshold crossings, preferences restoration and speech speed.
+
+**Operational setup still required:** Real government observations and verified mandi coordinates are not bundled yet. Configure Supabase migration/connection, live AI provider credentials, and alert-worker secret locally before claiming end-to-end integration. Details: `docs/PHASES_1_4_IMPLEMENTATION.md` and `docs/PHASES_5_8_IMPLEMENTATION.md`.

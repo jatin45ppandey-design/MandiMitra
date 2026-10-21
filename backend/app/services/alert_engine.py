@@ -29,3 +29,24 @@ def hindi_digest(record: MarketPrice) -> str:
         f"रिपोर्ट: {record.arrival_date.isoformat()}। "
         "स्रोत: AGMARKNET/data.gov.in। वास्तविक बिक्री भाव अलग हो सकता है।"
     )
+
+
+def crosses(alert: dict, previous: MarketPrice | None, current: MarketPrice) -> bool:
+    """New threshold crossing, not another day remaining above/below the target."""
+    if previous is None or previous.modal_price is None or current.modal_price is None:
+        return False
+    keys = ("state", "district", "market", "commodity", "variety", "grade")
+    if any(
+        (str(getattr(previous, key) or "")).casefold()
+        != (str(getattr(current, key) or "")).casefold()
+        for key in keys
+    ):
+        return False
+    if not matches(alert, current):
+        return False
+    threshold = Decimal(str(alert["threshold"]))
+    if alert["direction"] == "above":
+        return previous.modal_price < threshold <= current.modal_price
+    if alert["direction"] == "below":
+        return previous.modal_price > threshold >= current.modal_price
+    return False
