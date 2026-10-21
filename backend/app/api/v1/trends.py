@@ -20,12 +20,22 @@ def trends(
         snapshot, commodity=commodity, state=state,
         district=district, market=market, variety=variety,
     )
+    # Historical observations from different varieties or grades cannot be
+    # combined into a single price trend.
+    kinds = {(r.variety or "").casefold() for r in records}
+    grades = {(r.grade or "").casefold() for r in records}
+    if len(kinds) > 1 or len(grades) > 1:
+        return TrendResponse(
+            observations=[],
+            verified=snapshot.metadata.verified,
+            message="Multiple varieties or grades found; select a comparable series",
+        )
     observations = [
         TrendObservation(
             report_date=r.arrival_date,
             modal_price=r.modal_price,
             market=r.market,
-            variety=r.variety
+            variety=r.variety,
         )
         for r in reversed(records)
         if r.modal_price is not None
@@ -35,4 +45,3 @@ def trends(
         verified=snapshot.metadata.verified,
         message=None if observations else "No verified historical observations reported",
     )
-
