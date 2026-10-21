@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button'
 import { FeedbackPanel } from '../../components/ui/FeedbackPanel'
 import type { useMarketSearch } from '../../hooks/useMarketSearch'
 import { translate } from '../../i18n/translations'
-import { createAlert, disableAlert, getAlerts, getNotifications } from '../../services/api'
+import { ApiError, createAlert, disableAlert, getAlerts, getNotifications } from '../../services/api'
 import { formatCurrency, formatFetchedAt } from '../../utils/format'
 import { useAuth } from '../auth/auth-context'
 
@@ -45,6 +45,9 @@ export function AlertManager({ market }: { market: MarketSearchState }) {
       void queryClient.invalidateQueries({ queryKey: ['alerts', session?.user.id] })
     },
   })
+  const accountUnavailable = [alertsQuery.error, notificationsQuery.error].some(
+    (error) => error instanceof ApiError && error.status === 503,
+  )
   const record = market.selectedRecord
   const canCreate = Boolean(
     record && market.pricesQuery.data?.verified && record.variety && record.grade && record.modal_price,
@@ -74,7 +77,9 @@ export function AlertManager({ market }: { market: MarketSearchState }) {
           <span className="grid size-10 place-items-center rounded-xl bg-harvest-100 text-harvest-600"><Bell size={20} aria-hidden="true" /></span>
           <h2 className="text-xl font-bold text-forest-950">{t('createAlert')}</h2>
         </div>
-        {!canCreate ? (
+        {accountUnavailable ? (
+          <div className="mt-5"><FeedbackPanel compact kind="error" title={t('accountBackendUnavailable')} description={t('accountBackendHelp')} /></div>
+        ) : !canCreate ? (
           <div className="mt-5"><FeedbackPanel compact title={t('alertNeedsRecord')} /></div>
         ) : (
           <>
@@ -119,7 +124,7 @@ export function AlertManager({ market }: { market: MarketSearchState }) {
         <section className="rounded-3xl bg-paper p-5 shadow-panel sm:p-7" aria-labelledby="active-alerts-heading">
           <h2 id="active-alerts-heading" className="text-xl font-bold text-forest-950">{t('activeAlerts')}</h2>
           {alertsQuery.isPending ? <p className="mt-5 text-sm text-ink-600">{t('loadingOptions')}</p> : null}
-          {alertsQuery.isError ? <div className="mt-5"><FeedbackPanel compact kind="error" title={alertsQuery.error.message} /></div> : null}
+          {alertsQuery.isError ? <div className="mt-5"><FeedbackPanel compact kind="error" title={accountUnavailable ? t('accountBackendUnavailable') : alertsQuery.error.message} description={accountUnavailable ? t('accountBackendHelp') : undefined} /></div> : null}
           {alertsQuery.data?.length === 0 ? <div className="mt-5"><FeedbackPanel compact title={t('noAlerts')} /></div> : null}
           <div className="mt-4 grid gap-3">
             {alertsQuery.data?.map((alert) => (
@@ -154,7 +159,7 @@ export function AlertManager({ market }: { market: MarketSearchState }) {
             <Inbox size={20} className="text-forest-700" aria-hidden="true" />
             <h2 id="notifications-heading" className="text-xl font-bold text-forest-950">{t('notifications')}</h2>
           </div>
-          {notificationsQuery.isError ? <div className="mt-5"><FeedbackPanel compact kind="error" title={notificationsQuery.error.message} /></div> : null}
+          {notificationsQuery.isError ? <div className="mt-5"><FeedbackPanel compact kind="error" title={accountUnavailable ? t('accountBackendUnavailable') : notificationsQuery.error.message} description={accountUnavailable ? t('accountBackendHelp') : undefined} /></div> : null}
           {notificationsQuery.data?.items.length === 0 ? <div className="mt-5"><FeedbackPanel compact title={t('noNotifications')} /></div> : null}
           <div className="mt-4 grid gap-3">
             {notificationsQuery.data?.items.map((item) => (
