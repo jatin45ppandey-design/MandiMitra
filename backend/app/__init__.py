@@ -1,0 +1,1 @@
+"""MandiMitra FastAPI application."""
