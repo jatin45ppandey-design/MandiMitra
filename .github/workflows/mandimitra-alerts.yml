@@ -1,0 +1,28 @@
+name: Process verified mandi alerts
+on:
+  schedule:
+    - cron: '45 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  create-notifications:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: ${{ secrets.MANDIMITRA_DATABASE_URL }}
+      DATABASE_BACKEND: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Process crossings if configured
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "Missing MANDIMITRA_DATABASE_URL; job skipped without contacting database."
+            exit 0
+          fi
+          python -m pip install -e .
+          python -m scripts.process_alerts

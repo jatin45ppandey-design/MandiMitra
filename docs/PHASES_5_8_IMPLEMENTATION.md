@@ -28,3 +28,8 @@
 
 ## Remaining runtime dependencies
 Authentic AGMARKNET observations, audited coordinates, configured Supabase migrations/auth, a reachable Gemma API account, and hosting credentials are not provisioned by this branch. Tests use safe fixtures, never fabricated public market prices.
+
+
+## Scheduled in-app alert worker
+
+The optional GitHub Actions workflow `.github/workflows/mandimitra-alerts.yml` runs daily on the **default branch after merge** (and can be triggered manually). Store a rotated PostgreSQL URL only in repository secret `MANDIMITRA_DATABASE_URL`. Without the secret, the job exits without querying the database. Run the worker after new genuine observations are imported to PostgreSQL; this workflow does not fetch government data.
