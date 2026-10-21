@@ -58,3 +58,13 @@ def save_preferences(owner: str, preferences: PreferenceUpdate) -> dict:
             RETURNING language,default_state,default_district,default_commodity
         """), params).mappings().one()
     return dict(row)
+
+
+def get_preferences(owner: str) -> dict | None:
+    """Return only the authenticated owner's saved cloud preferences."""
+    with engine().connect() as db:
+        row = db.execute(text("""
+            SELECT language,default_state,default_district,default_commodity
+            FROM farmer_preferences WHERE user_id=CAST(:owner AS uuid)
+        """), {"owner": owner}).mappings().one_or_none()
+    return dict(row) if row is not None else None
