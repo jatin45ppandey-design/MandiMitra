@@ -307,7 +307,7 @@ export function getNotifications(token: string): Promise<NotificationResponse> {
 export const apiBaseUrl = baseUrl
 
 
-export async function getDataCoverage(): Promise<DataCoverageResponse> {
+export async function getDataCoverage(filters: {state?:string; district?:string; commodity?:string} = {}): Promise<DataCoverageResponse> {
   try {
     return await request<DataCoverageResponse>(`/data/coverage${buildQuery(filters)}`)
   } catch (error) {
