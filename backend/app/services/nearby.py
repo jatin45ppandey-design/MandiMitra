@@ -11,7 +11,9 @@ from pathlib import Path
 from app.schemas.prices import MarketPrice
 from app.services.price_service import latest_per_market_and_variety
 
-REGISTRY_PATH = Path(__file__).resolve().parents[2] / "data" / "reference" / "market-coordinates.csv"
+REGISTRY_PATH = (
+    Path(__file__).resolve().parents[2] / "data" / "reference" / "market-coordinates.csv"
+)
 
 
 @dataclass(frozen=True)
@@ -24,7 +26,9 @@ def _key(state: str, district: str, market: str) -> tuple[str, str, str]:
     return (state.strip().casefold(), district.strip().casefold(), market.strip().casefold())
 
 
-def read_verified_coordinates(path: Path = REGISTRY_PATH) -> dict[tuple[str, str, str], tuple[float, float]]:
+def read_verified_coordinates(
+    path: Path = REGISTRY_PATH,
+) -> dict[tuple[str, str, str], tuple[float, float]]:
     """Only records with explicit source and verified=true are eligible."""
     if not path.exists():
         return {}
