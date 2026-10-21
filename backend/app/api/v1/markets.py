@@ -13,6 +13,42 @@ from app.services.road_comparison import compare_roads
 router = APIRouter(prefix="/markets", tags=["markets"])
 
 
+from pydantic import BaseModel
+
+
+class OriginLocation(BaseModel):
+    state: str
+    district: str
+    market: str
+    latitude: float
+    longitude: float
+
+
+class OriginLocations(BaseModel):
+    items: list[OriginLocation]
+    source: str = "Verified locally sourced mandi coordinate registry"
+
+
+@router.get("/origins", response_model=OriginLocations)
+def verified_origin_locations(
+    state: str = Query(min_length=1, max_length=120),
+    district: str | None = Query(default=None, max_length=120),
+) -> OriginLocations:
+    coords = read_verified_coordinates()
+    items = [
+        OriginLocation(
+            state=key[0], district=key[1], market=key[2],
+            latitude=position[0], longitude=position[1],
+        )
+        for key, position in coords.items()
+        if key[0] == state.casefold()
+        and (not district or key[1] == district.casefold())
+    ]
+    return OriginLocations(items=sorted(items, key=lambda x: (x.district, x.market))[:500])
+
+
+
+
 @router.get("/compare", response_model=PriceResponse)
 def compare_markets(
     commodity: str = Query(min_length=1),
