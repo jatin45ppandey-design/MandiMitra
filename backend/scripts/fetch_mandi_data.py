@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+from app.core.config import settings
 from app.repositories.history import HistoryRepository
 from app.schemas.prices import MandiSnapshot, SnapshotMetadata
 from app.services.agmarknet import AgmarknetClient, DataGovError
@@ -147,7 +148,11 @@ def main() -> None:
         print("Dry run: no snapshot files were changed.")
         return
     # Persist verified observations across successive filtered imports.
-    HistoryRepository().import_snapshot(snapshot)
+    if settings.database_backend == 'postgres':
+        from app.repositories.postgres_prices import import_verified
+        import_verified(snapshot)
+    else:
+        HistoryRepository().import_snapshot(snapshot)
     payload = snapshot.model_dump(mode="json")
     _atomic_json_write(BACKEND_SNAPSHOT, payload)
     print(f"Saved backend snapshot: {BACKEND_SNAPSHOT}")
