@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import alerts, earnings, health, markets, notifications, prices, trends
+from app.api.v1 import alerts, coverage, earnings, health, markets, notifications, prices, trends
 from app.core.config import settings
 
 logging.basicConfig(level=logging.INFO)
@@ -24,6 +24,6 @@ app.add_middleware(
 
 for router in (
     health.router, prices.router, markets.router, trends.router,
-    earnings.router, alerts.router, notifications.router,
+    earnings.router, alerts.router, notifications.router, coverage.router,
 ):
     app.include_router(router, prefix=settings.api_prefix)
