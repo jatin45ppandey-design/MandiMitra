@@ -10,6 +10,7 @@ import { TransportSection } from '../../features/transport-calculator/TransportS
 import { useMarketSearch } from '../../hooks/useMarketSearch'
 import { translate } from '../../i18n/translations'
 import { recordIdentity } from '../../utils/format'
+import { QuickMandiComparison } from '../../features/market-comparison/QuickMandiComparison'
 
 export function HomePage() {
   const { language } = useAppState()
@@ -36,6 +37,7 @@ export function HomePage() {
         <SectionReveal><LatestPriceCard market={market} /></SectionReveal>
         <SectionReveal><TrendSection market={market} /></SectionReveal>
       </div>
+      <div className="mt-6"><SectionReveal><QuickMandiComparison market={market}/></SectionReveal></div>
       <div className="mt-6">
         <SectionReveal>
           <TransportSection

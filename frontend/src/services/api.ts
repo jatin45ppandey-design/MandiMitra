@@ -301,8 +301,21 @@ export function getNotifications(token: string): Promise<NotificationResponse> {
 export const apiBaseUrl = baseUrl
 
 
-export function getDataCoverage(): Promise<DataCoverageResponse> {
-  return request<DataCoverageResponse>('/data/coverage')
+export async function getDataCoverage(): Promise<DataCoverageResponse> {
+  try {
+    return await request<DataCoverageResponse>('/data/coverage')
+  } catch (error) {
+    if (error instanceof ApiError && error.status !== 0) throw error
+    const snapshot = await readBundledSnapshot()
+    return {
+      verified:snapshot.metadata.verified && snapshot.records.length>0,
+      record_count:snapshot.records.length,
+      latest_report_date:snapshot.metadata.latest_report_date,
+      source:snapshot.metadata.source,
+      verified_market_coordinates:0,
+      note:'Bundled offline snapshot; not a live government quote',
+    }
+  }
 }
 
 export async function compareRoadRoutes(
