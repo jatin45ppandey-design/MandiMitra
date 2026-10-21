@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+from app.repositories.history import HistoryRepository
 from app.schemas.prices import MandiSnapshot, SnapshotMetadata
 from app.services.agmarknet import AgmarknetClient, DataGovError
 from app.services.normalize import normalize_records
@@ -145,6 +146,8 @@ def main() -> None:
     if args.dry_run:
         print("Dry run: no snapshot files were changed.")
         return
+    # Persist verified observations across successive filtered imports.
+    HistoryRepository().import_snapshot(snapshot)
     payload = snapshot.model_dump(mode="json")
     _atomic_json_write(BACKEND_SNAPSHOT, payload)
     print(f"Saved backend snapshot: {BACKEND_SNAPSHOT}")
