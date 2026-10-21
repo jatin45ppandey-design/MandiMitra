@@ -3,8 +3,8 @@
 All coordinates passed to ORS are [longitude, latitude]. Secrets stay in the
 server-side Authorization header, never a frontend URL, response, or log.
 """
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 import httpx
 
