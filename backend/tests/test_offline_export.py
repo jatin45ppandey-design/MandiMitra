@@ -5,6 +5,7 @@ import pytest
 from app.schemas.prices import MandiSnapshot, MarketPrice, SnapshotMetadata
 from scripts import export_offline_snapshot as exporter
 
+
 def test_export_never_publishes_empty_data(tmp_path,monkeypatch):
     monkeypatch.setattr(exporter,"read_prices",lambda:MandiSnapshot(
         metadata=SnapshotMetadata(source="test",record_count=0,verified=False),records=[]))

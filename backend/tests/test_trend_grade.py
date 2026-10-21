@@ -8,10 +8,12 @@ from app.api.v1 import trends
 from app.main import app
 from app.schemas.prices import MandiSnapshot, MarketPrice, SnapshotMetadata
 
+
 def row(day: int, grade: str, price: str) -> MarketPrice:
     return MarketPrice(state="Uttar Pradesh", district="Lucknow", market="Market A",
         commodity="Wheat", variety="Dara", grade=grade, arrival_date=date(2026,10,day),
         modal_price=Decimal(price))
+
 
 def test_trends_filter_grade_and_preserve_gap(monkeypatch):
     rows=[row(11,"FAQ","2000"),row(13,"FAQ","2200"),row(12,"Other","2500")]
