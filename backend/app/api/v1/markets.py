@@ -1,10 +1,13 @@
 from fastapi import APIRouter, HTTPException, Query
 
 from app.repositories.prices import read_prices
+from app.schemas.road_comparison import RoadCompareRequest, RoadCompareResponse
 from app.schemas.prices import PriceResponse
 from app.services.market_comparison import compare_same_district
 from app.services.nearby import find_nearby, read_verified_coordinates
 from app.services.price_service import build_price_response, filter_prices
+from app.services.road_comparison import compare_roads
+from app.services.openrouteservice import RoutingUnavailable, RoutingNotConfigured
 
 router = APIRouter(prefix="/markets", tags=["markets"])
 
@@ -67,3 +70,42 @@ def nearby_markets(
             for item in found
         ],
     }
+
+@router.post("/road-compare", response_model=RoadCompareResponse)
+async def road_compare_markets(request: RoadCompareRequest) -> RoadCompareResponse:
+    """ORS driving-car road distances for verified mandis; no guessed locations.
+
+    Optional per-kilometre costs are entered by the farmer. Neither ORS nor
+    the app knows actual freight quotes, tolls or buying offers.
+    """
+    snapshot = read_prices()
+    try:
+        markets, missing_count, registry_present = await compare_roads(
+            snapshot.records, request
+        )
+    except RoutingNotConfigured as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from None
+    except RoutingUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from None
+
+    if not registry_present:
+        return RoadCompareResponse(
+            status="coordinates_unavailable",
+            message="Verified mandi coordinate registry is not configured",
+        )
+    if not markets:
+        return RoadCompareResponse(
+            status="no_matching_verified_markets",
+            excluded_without_coordinates=missing_count,
+            message="No matching mandis with verified coordinates in this radius",
+        )
+    return RoadCompareResponse(
+        status="ok",
+        markets=markets,
+        excluded_without_coordinates=missing_count,
+        latest_report_date=max(item.observation.arrival_date for item in markets),
+        message=(
+            "Road distance from OpenRouteService; reporting dates shown per mandi. "
+            "Compare varieties, grade and freshness before choosing."
+        ),
+    )
