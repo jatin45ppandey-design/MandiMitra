@@ -3,6 +3,7 @@ import { useAppState } from '../app-state-context'
 import { BackendStatus } from '../../components/common/BackendStatus'
 import { SectionReveal } from '../../components/ui/SectionReveal'
 import { LatestPriceCard } from '../../features/mandi-prices/LatestPriceCard'
+import { DataCoveragePanel } from '../../features/mandi-prices/DataCoveragePanel'
 import { PriceSearchPanel } from '../../features/mandi-prices/PriceSearchPanel'
 import { TrendSection } from '../../features/price-trends/TrendSection'
 import { TransportSection } from '../../features/transport-calculator/TransportSection'
@@ -29,6 +30,7 @@ export function HomePage() {
         </div>
         <div className="md:hidden"><BackendStatus /></div>
       </header>
+      <DataCoveragePanel />
       <SectionReveal><PriceSearchPanel market={market} /></SectionReveal>
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <SectionReveal><LatestPriceCard market={market} /></SectionReveal>
