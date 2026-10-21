@@ -21,6 +21,9 @@ export function PriceSearchPanel({
   const t = (key: Parameters<typeof translate>[1]) => translate(language, key)
   const selectionError =
     market.statesQuery.isError || market.commoditiesQuery.isError || market.districtsQuery.isError
+  const catalogEmpty = market.statesQuery.isSuccess && market.commoditiesQuery.isSuccess
+    && market.statesQuery.data.items.length === 0
+    && market.commoditiesQuery.data.items.length === 0
 
   return (
     <section className={`rounded-3xl bg-sage-100 ${compact ? 'p-4 sm:p-5' : 'p-5 sm:p-7'}`} aria-labelledby="price-search-heading">
@@ -39,6 +42,11 @@ export function PriceSearchPanel({
         <p role="alert" className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
           {t('genericError')}
         </p>
+      ) : null}
+      {catalogEmpty ? (
+        <div role="status" className="mb-5 rounded-xl border border-harvest-600/20 bg-paper p-4 text-sm leading-6 text-forest-950">
+          {t('catalogNotReady')}
+        </div>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <SearchableSelect
