@@ -6,6 +6,7 @@ from sqlalchemy import text
 from app.db.postgres import engine
 from app.schemas.prices import MandiSnapshot, MarketPrice, SnapshotMetadata
 
+
 def _identity(row: MarketPrice) -> str:
     return json.dumps([
         row.state.casefold(), row.district.casefold(), row.market.casefold(),
