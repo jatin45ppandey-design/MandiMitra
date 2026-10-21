@@ -26,6 +26,8 @@ class RoadCompareRequest(BaseModel):
             raise ValueError(
                 "Provide both quantity_quintals and cost_per_km for net estimates"
             )
+        if self.fixed_cost > 0 and self.quantity_quintals is None:
+            raise ValueError("Fixed costs require quantity and cost_per_km")
         return self
 
 
