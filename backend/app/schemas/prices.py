@@ -2,7 +2,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_serializer, model_validator
 
 
 class MarketPrice(BaseModel):
@@ -11,13 +11,18 @@ class MarketPrice(BaseModel):
     market: str = Field(min_length=1)
     commodity: str = Field(min_length=1)
     variety: str | None = None
+    grade: str | None = None
     arrival_date: date
     min_price: Decimal | None = Field(default=None, ge=0)
     max_price: Decimal | None = Field(default=None, ge=0)
-    modal_price: Decimal | None = Field(default=None, ge=0)
+    modal_price: Decimal | None = Field(default=None, gt=0)
     price_unit: Literal["INR/quintal"] = "INR/quintal"
     source: str = "AGMARKNET"
     fetched_at: datetime | None = None
+
+    @field_serializer("min_price", "max_price", "modal_price", when_used="json")
+    def serialize_price(self, value: Decimal | None) -> float | None:
+        return float(value) if value is not None else None
 
     @model_validator(mode="after")
     def validate_price_order(self) -> "MarketPrice":
@@ -48,6 +53,9 @@ class SnapshotMetadata(BaseModel):
     latest_report_date: date | None = None
     record_count: int = Field(ge=0)
     verified: bool = False
+    partial: bool = True
+    filters: dict[str, str] = Field(default_factory=dict)
+    rejected_records: int = Field(default=0, ge=0)
 
 
 class MandiSnapshot(BaseModel):
