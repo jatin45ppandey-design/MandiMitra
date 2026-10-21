@@ -8,6 +8,7 @@ import csv
 from datetime import UTC, datetime
 from pathlib import Path
 
+from app.core.config import settings
 from app.repositories.history import HistoryRepository
 from app.schemas.prices import MandiSnapshot, SnapshotMetadata
 from app.services.normalize import normalize_records
@@ -37,7 +38,11 @@ def import_csv(path: Path, *, source_url: str, dry_run: bool = False) -> tuple[i
         records=records,
     )
     if not dry_run:
-        HistoryRepository().import_snapshot(snapshot)
+        if settings.database_backend == 'postgres':
+            from app.repositories.postgres_prices import import_verified
+            import_verified(snapshot)
+        else:
+            HistoryRepository().import_snapshot(snapshot)
     return len(records), rejected
 
 
