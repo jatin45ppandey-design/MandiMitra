@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowDownRight, ArrowRight, ArrowUpRight, ChartNoAxesCombined } from 'lucide-react'
 import { useAppState } from '../../app/app-state-context'
@@ -14,6 +14,8 @@ type MarketSearchState = ReturnType<typeof useMarketSearch>
 
 export function TrendSection({ market }: { market: MarketSearchState }) {
   const { language } = useAppState()
+  const [range, setRange] = useState<'7' | '30' | '90' | 'all'>('30')
+  const fromDate = range === 'all' ? undefined : new Date(Date.now() - Number(range) * 86400000).toISOString().slice(0, 10)
   const record = market.selectedRecord
   const t = (key: Parameters<typeof translate>[1]) => translate(language, key)
   const trendQuery = useQuery({
@@ -24,6 +26,8 @@ export function TrendSection({ market }: { market: MarketSearchState }) {
       record?.commodity,
       record?.market,
       record?.variety,
+      record?.grade,
+      fromDate,
     ],
     queryFn: () =>
       getTrends({
@@ -32,6 +36,8 @@ export function TrendSection({ market }: { market: MarketSearchState }) {
         commodity: record!.commodity,
         market: record!.market,
         variety: record!.variety ?? undefined,
+        grade: record!.grade ?? undefined,
+        from_date: fromDate,
       }),
     enabled: Boolean(record && market.pricesQuery.data?.verified),
     staleTime: 5 * 60_000,
@@ -52,6 +58,14 @@ export function TrendSection({ market }: { market: MarketSearchState }) {
           <h2 id="trend-heading" className="text-xl font-bold tracking-tight text-forest-950">{t('trendTitle')}</h2>
           <p className="mt-1 text-sm leading-6 text-ink-600">{t('trendIntro')}</p>
         </div>
+      </div>
+      <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label={language === 'hi' ? 'इतिहास अवधि' : 'History range'}>
+        {(['7', '30', '90', 'all'] as const).map(period => (
+          <button key={period} type="button" onClick={() => setRange(period)} aria-pressed={range === period}
+            className={`min-h-10 rounded-xl px-3 text-sm font-semibold transition ${range === period ? 'bg-forest-900 text-white' : 'bg-sage-50 text-forest-900 hover:bg-sage-100'}`}>
+            {period === 'all' ? (language === 'hi' ? 'सभी' : 'All') : `${period} ${language === 'hi' ? 'दिन' : 'days'}`}
+          </button>
+        ))}
       </div>
       {!record ? <FeedbackPanel compact title={t('trendNeedsMarket')} /> : null}
       {record && trendQuery.isPending ? (
@@ -77,6 +91,7 @@ export function TrendSection({ market }: { market: MarketSearchState }) {
               <p className="text-xs text-ink-600">{t('comparedWithPrevious')}</p>
             </div>
           </div>
+          <p className="mb-3 text-xs text-ink-600">{language === 'hi' ? 'रिपोर्ट न होने वाले दिनों को खाली रखा गया है।' : 'Days without a reported rate are shown as gaps.'}</p>
           <Suspense fallback={<Skeleton className="h-64 w-full" />}>
             <TrendChart observations={observations} language={language} />
           </Suspense>
