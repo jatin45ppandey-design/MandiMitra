@@ -359,6 +359,20 @@ export function askAdvisor(input: {
   return request<AdvisorAnswer>('/advisor/ask', {method:'POST',body:JSON.stringify(input)})
 }
 
-export function compareNetDeals(input:RoadCompareInput):Promise<NetCompareResponse> {
-  return request<NetCompareResponse>('/markets/net-compare',{method:'POST',body:JSON.stringify(input)})
+export async function compareNetDeals(input:RoadCompareInput):Promise<NetCompareResponse> {
+  const data = await request<NetCompareResponse>('/markets/net-compare',
+    {method:'POST',body:JSON.stringify(input)})
+  return {...data,markets:data.markets.map(m=>({
+    ...m, distance_km:m.distance_km===null?null:numericField(m.distance_km,'road distance'),
+    duration_minutes:m.duration_minutes===null?null:numericField(m.duration_minutes,'road duration'),
+    estimate:m.estimate?{
+      ...m.estimate,gross_proceeds:numericField(m.estimate.gross_proceeds,'gross proceeds'),
+      transport_cost:numericField(m.estimate.transport_cost,'freight cost'),
+      net_proceeds:numericField(m.estimate.net_proceeds,'net proceeds'),
+    }:null,
+  }))}
+}
+
+export function getPreferences(token:string):Promise<PreferenceUpdate|null> {
+  return request<PreferenceUpdate|null>('/preferences',{},token)
 }

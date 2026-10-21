@@ -51,7 +51,7 @@ export function AppShell() {
                   }`
                 }
               >
-                {translate(language, key)}
+                {key === 'navAdvisor' ? (language === 'hi' ? 'सलाह' : 'Advisor') : translate(language, key as Parameters<typeof translate>[1])}
               </NavLink>
             ))}
           </nav>

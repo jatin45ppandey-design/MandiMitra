@@ -2,7 +2,6 @@
 
 Costs are intentionally handled by deterministic endpoints, not this model.
 """
-import asyncio
 import logging
 import time
 from collections import defaultdict, deque

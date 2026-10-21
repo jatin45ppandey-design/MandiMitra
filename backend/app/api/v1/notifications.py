@@ -11,9 +11,14 @@ router = APIRouter(tags=["notifications"])
 def notifications(owner: str = Depends(current_user_id)) -> dict:
     with engine().connect() as db:
         rows = db.execute(text("""
-            SELECT n.id,n.observation_identity,n.channel,n.status,n.created_at
+            SELECT n.id,n.observation_identity,n.channel,n.status,n.created_at,
+                   m.record->>'commodity' AS commodity,
+                   m.record->>'market' AS market,
+                   m.record->>'arrival_date' AS report_date,
+                   m.record->>'modal_price' AS modal_price
             FROM notification_events n
             JOIN price_alerts a ON a.id=n.alert_id
+            LEFT JOIN mandi_observations m ON m.identity=n.observation_identity
             WHERE a.user_id=CAST(:owner AS uuid)
             ORDER BY n.created_at DESC LIMIT 100
         """), {"owner": owner}).mappings()

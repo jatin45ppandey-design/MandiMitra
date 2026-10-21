@@ -96,6 +96,18 @@ export function AppStateProvider({ children }: PropsWithChildren) {
     })
   }, [])
 
+  const applyCloudPreferences = useCallback((prefs: {
+    language:Language; default_state:string|null; default_district:string|null; default_commodity:string|null
+  }) => {
+    setStored(current => {
+      // Preserve a local choice in progress; use cloud defaults only on an empty device.
+      if (current.selections.state || current.selections.district || current.selections.commodity) return current
+      return {...current, language:prefs.language,
+        selections:{...current.selections,state:prefs.default_state??'',
+          district:prefs.default_district??'',commodity:prefs.default_commodity??''}}
+    })
+  }, [])
+
   const toggleSavedCrop = useCallback((commodity: string) => {
     if (!commodity) return
     setStored((current) => ({
@@ -132,6 +144,7 @@ export function AppStateProvider({ children }: PropsWithChildren) {
     () => ({
       language: stored.language,
       setLanguage,
+      applyCloudPreferences,
       selections: stored.selections,
       setSelection,
       savedCrops: stored.savedCrops,
@@ -144,6 +157,7 @@ export function AppStateProvider({ children }: PropsWithChildren) {
       clearLocalPreferences,
       rememberVerifiedReportDate,
       setLanguage,
+      applyCloudPreferences,
       setSelection,
       stored,
       toggleSavedCrop,

@@ -15,6 +15,7 @@ export type SelectionField = keyof MarketSelections
 export interface AppStateValue {
   language: Language
   setLanguage: (language: Language) => void
+  applyCloudPreferences: (input: {language:Language; default_state:string|null; default_district:string|null; default_commodity:string|null}) => void
   selections: MarketSelections
   setSelection: (field: SelectionField, value: string) => void
   savedCrops: string[]

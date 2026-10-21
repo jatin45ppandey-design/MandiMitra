@@ -117,6 +117,10 @@ export interface NotificationEvent {
   channel: string
   status: string
   created_at: string
+  commodity?: string | null
+  market?: string | null
+  report_date?: string | null
+  modal_price?: string | null
 }
 
 export interface NotificationResponse {
