@@ -1,5 +1,5 @@
 """Join genuine market prices, sourced market positions and road estimates."""
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 from app.schemas.prices import MarketPrice
 from app.schemas.road_comparison import RoadCompareRequest, RoadEstimate, RoadMarketResult
