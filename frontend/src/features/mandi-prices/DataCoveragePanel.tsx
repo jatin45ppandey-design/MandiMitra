@@ -6,12 +6,12 @@ import { getDataCoverage } from '../../services/api'
 import { formatReportedDate } from '../../utils/format'
 
 export function DataCoveragePanel() {
-  const { language } = useAppState()
+  const { language, selections } = useAppState()
   const t = (key: Parameters<typeof translate>[1], value?: Record<string, number | string>) =>
     translate(language, key, value)
   const status = useQuery({
-    queryKey: ['public-data-coverage'],
-    queryFn: getDataCoverage,
+    queryKey: ['public-data-coverage', selections.state, selections.district, selections.commodity],
+    queryFn: () => getDataCoverage({state:selections.state, district:selections.district, commodity:selections.commodity}),
     staleTime: 10 * 60_000,
     retry: 1,
   })
@@ -47,6 +47,15 @@ export function DataCoveragePanel() {
                       language === 'hi' ? 'hi-IN' : 'en-IN',
                     ),
                   })}
+                </p>
+              ) : null}
+              {fresh && status.data?.age_days !== null && status.data?.age_days !== undefined ? (
+                <p className={`mt-1 text-xs font-semibold ${status.data.age_days > 3 ? 'text-harvest-600' : 'text-forest-800'}`}>
+                  {status.data.age_days > 3
+                    ? (language === 'hi' ? `यह रिकॉर्ड ${status.data.age_days} दिन पुराना है; इसे आज का भाव न मानें।`
+                        : `Latest report is ${status.data.age_days} days old; not today's rate.`)
+                    : (language === 'hi' ? `उपलब्ध रिपोर्ट: ${status.data.reporting_days ?? 0} दिन, ${status.data.market_count ?? 0} मंडियाँ`
+                        : `${status.data.reporting_days ?? 0} reported days, ${status.data.market_count ?? 0} mandis`)}
                 </p>
               ) : null}
               {status.data && status.data.verified_market_coordinates > 0 ? (

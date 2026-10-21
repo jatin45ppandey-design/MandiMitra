@@ -13,6 +13,7 @@ from app.repositories.history import HistoryRepository
 from app.schemas.prices import MandiSnapshot, SnapshotMetadata
 from app.services.agmarknet import AgmarknetClient, DataGovError
 from app.services.normalize import normalize_records
+from app.services.offline_pack import balanced_offline_records
 
 
 async def sync(
@@ -55,6 +56,23 @@ async def sync(
             rejected_records=rejected,
         ),
         records=clean,
+    )
+
+
+def _offline_subset(snapshot: MandiSnapshot, *, state: str, limit: int) -> MandiSnapshot:
+    """Compatibility helper for callers that select a verified offline state."""
+    rows = balanced_offline_records(snapshot.records, state=state, limit=limit)
+    return MandiSnapshot(
+        metadata=SnapshotMetadata(
+            source=snapshot.metadata.source,
+            fetched_at=snapshot.metadata.fetched_at,
+            record_count=len(rows),
+            latest_report_date=max(item.arrival_date for item in rows),
+            verified=snapshot.metadata.verified,
+            partial=True,
+            filters={"state": state, "offline_limit": str(limit)},
+        ),
+        records=rows,
     )
 
 

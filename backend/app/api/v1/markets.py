@@ -35,13 +35,19 @@ def verified_origin_locations(
     district: str | None = Query(default=None, max_length=120),
 ) -> OriginLocations:
     coords = read_verified_coordinates()
+    # Use original spelling from actual reported market records, not casefolded keys.
+    names = {
+        (row.state.casefold(), row.district.casefold(), row.market.casefold()):
+        (row.state, row.district, row.market)
+        for row in read_prices().records
+    }
     items = [
         OriginLocation(
-            state=key[0], district=key[1], market=key[2],
+            state=names[key][0], district=names[key][1], market=names[key][2],
             latitude=position[0], longitude=position[1],
         )
         for key, position in coords.items()
-        if key[0] == state.casefold()
+        if key in names and key[0] == state.casefold()
         and (not district or key[1] == district.casefold())
     ]
     return OriginLocations(items=sorted(items, key=lambda x: (x.district, x.market))[:500])
@@ -152,6 +158,11 @@ async def road_compare_markets(request: RoadCompareRequest) -> RoadCompareRespon
 async def net_compare_markets(request: RoadCompareRequest) -> NetDecisionResponse:
     """Price minus farmer-supplied road costs; only recent verified matches can rank."""
     snapshot = read_prices()
+    if not snapshot.metadata.verified:
+        return NetDecisionResponse(
+            status="no_matching_verified_markets",
+            message="No verified price observations; no market ranking produced",
+        )
     try:
         results, missing, registry_present = await compare_roads(snapshot.records, request)
     except RoutingNotConfigured as exc:

@@ -175,6 +175,10 @@ export interface DataCoverageResponse {
   source: string
   verified_market_coordinates: number
   note: string
+  age_days?: number | null
+  reporting_days?: number
+  market_count?: number
+  partial?: boolean
 }
 
 export interface NetMarketResult extends RoadMarketResult {

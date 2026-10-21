@@ -304,17 +304,26 @@ export const apiBaseUrl = baseUrl
 
 export async function getDataCoverage(): Promise<DataCoverageResponse> {
   try {
-    return await request<DataCoverageResponse>('/data/coverage')
+    return await request<DataCoverageResponse>(`/data/coverage${buildQuery(filters)}`)
   } catch (error) {
     if (error instanceof ApiError && error.status !== 0) throw error
     const snapshot = await readBundledSnapshot()
+    const filtered = snapshot.records.filter(r =>
+      (!filters.state || r.state.toLowerCase() === filters.state.toLowerCase())
+      && (!filters.district || r.district.toLowerCase() === filters.district.toLowerCase())
+      && (!filters.commodity || r.commodity.toLowerCase() === filters.commodity.toLowerCase()),
+    )
+    const newest = filtered.reduce<string|null>((best,r)=> !best || r.arrival_date > best ? r.arrival_date : best,null)
     return {
-      verified:snapshot.metadata.verified && snapshot.records.length>0,
-      record_count:snapshot.records.length,
-      latest_report_date:snapshot.metadata.latest_report_date,
+      verified:snapshot.metadata.verified && filtered.length>0,
+      record_count:filtered.length,
+      latest_report_date:newest,
       source:snapshot.metadata.source,
       verified_market_coordinates:0,
       note:'Bundled offline snapshot; not a live government quote',
+      age_days:newest ? Math.floor((Date.now()-Date.parse(newest+'T00:00:00Z'))/86400000) : null,
+      reporting_days:new Set(filtered.map(r=>r.arrival_date)).size,
+      market_count:new Set(filtered.map(r=>[r.state,r.district,r.market].join('|'))).size,
     }
   }
 }
@@ -375,4 +384,19 @@ export async function compareNetDeals(input:RoadCompareInput):Promise<NetCompare
 
 export function getPreferences(token:string):Promise<PreferenceUpdate|null> {
   return request<PreferenceUpdate|null>('/preferences',{},token)
+}
+
+export interface VerifiedOrigin {
+  state: string
+  district: string
+  market: string
+  latitude: number
+  longitude: number
+}
+export interface OriginResponse {
+  items: VerifiedOrigin[]
+  source: string
+}
+export function getVerifiedOrigins(state: string, district?: string): Promise<OriginResponse> {
+  return request<OriginResponse>(`/markets/origins${buildQuery({state,district})}`)
 }
