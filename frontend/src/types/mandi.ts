@@ -123,3 +123,52 @@ export interface NotificationResponse {
   items: NotificationEvent[]
 }
 
+
+export interface RoadCompareInput {
+  state: string
+  commodity: string
+  variety: string
+  grade: string
+  latitude: number
+  longitude: number
+  radius_km?: number
+  quantity_quintals?: number
+  cost_per_km?: number
+  fixed_cost?: number
+}
+
+export interface RoadEstimate {
+  gross_proceeds: number
+  transport_cost: number
+  net_proceeds: number
+  currency: 'INR'
+  estimated: boolean
+}
+
+export interface RoadMarketResult {
+  observation: MarketPrice
+  distance_km: number | null
+  duration_minutes: number | null
+  route_status: 'available' | 'unreachable'
+  estimate: RoadEstimate | null
+}
+
+export interface RoadCompareResponse {
+  status: 'ok' | 'coordinates_unavailable' | 'no_matching_verified_markets'
+  distance_type: 'road_route'
+  source: 'OpenRouteService'
+  markets: RoadMarketResult[]
+  latest_report_date: string | null
+  excluded_without_coordinates: number
+  message: string
+  disclaimer: string
+}
+
+export interface DataCoverageResponse {
+  verified: boolean
+  record_count: number
+  latest_report_date: string | null
+  source: string
+  verified_market_coordinates: number
+  note: string
+}
