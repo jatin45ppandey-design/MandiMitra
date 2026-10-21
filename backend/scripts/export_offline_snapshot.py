@@ -10,28 +10,24 @@ from datetime import UTC, datetime
 
 from app.repositories.prices import read_prices
 from app.schemas.prices import MandiSnapshot, SnapshotMetadata
+from app.services.offline_pack import balanced_offline_records
 from scripts.fetch_mandi_data import BACKEND_SNAPSHOT, FRONTEND_SNAPSHOT, _atomic_json_write
 
 
-def export_verified(*, offline_state: str | None = None, limit: int = 1200) -> tuple[int, int]:
+def export_verified(*, offline_state: str | None = None, limit: int = 3000) -> tuple[int, int]:
     if not 1 <= limit <= 5000:
         raise ValueError("Offline limit must be 1..5000")
     source = read_prices()
     if not source.metadata.verified or not source.records:
         raise ValueError("No verified observations available. Existing snapshots preserved.")
 
-    # Sort deterministically and retain exact reported dates, even when sparse.
     records = sorted(source.records, key=lambda r: (
         -r.arrival_date.toordinal(), r.state.casefold(), r.district.casefold(),
-        r.commodity.casefold(), r.market.casefold(), (r.variety or "").casefold(),
-        (r.grade or "").casefold()))
-    if offline_state:
-        offline_rows = [r for r in records if r.state.casefold() == offline_state.casefold()]
-    else:
-        offline_rows = records
-    if not offline_rows:
-        raise ValueError("No verified records in selected offline state; files untouched.")
-    offline_rows = offline_rows[:limit]
+        r.commodity.casefold(), r.market.casefold(),
+    ))
+    offline_rows = balanced_offline_records(
+        records, state=offline_state, limit=limit,
+    )
     now = datetime.now(UTC)
     common = {"source": source.metadata.source, "fetched_at": now, "verified": True, "partial": True}
     full = MandiSnapshot(metadata=SnapshotMetadata(
@@ -55,7 +51,7 @@ def export_verified(*, offline_state: str | None = None, limit: int = 1200) -> t
 def main() -> None:
     parser = argparse.ArgumentParser(description="Export verified stored mandi records to snapshots")
     parser.add_argument("--state", default=None, help="Optional offline subset state")
-    parser.add_argument("--limit", type=int, default=1200)
+    parser.add_argument("--limit", type=int, default=3000)
     args = parser.parse_args()
     try:
         full, offline = export_verified(offline_state=args.state, limit=args.limit)

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
 from app.repositories.prices import read_prices
 from app.schemas.prices import PriceResponse
@@ -11,6 +12,43 @@ from app.services.price_service import build_price_response, filter_prices
 from app.services.road_comparison import compare_roads
 
 router = APIRouter(prefix="/markets", tags=["markets"])
+
+
+class OriginLocation(BaseModel):
+    state: str
+    district: str
+    market: str
+    latitude: float
+    longitude: float
+
+
+class OriginLocations(BaseModel):
+    items: list[OriginLocation]
+    source: str = "Verified locally sourced mandi coordinate registry"
+
+
+@router.get("/origins", response_model=OriginLocations)
+def verified_origin_locations(
+    state: str = Query(min_length=1, max_length=120),
+    district: str | None = Query(default=None, max_length=120),
+) -> OriginLocations:
+    coords = read_verified_coordinates()
+    # Use original spelling from actual reported market records, not casefolded keys.
+    names = {
+        (row.state.casefold(), row.district.casefold(), row.market.casefold()):
+        (row.state, row.district, row.market)
+        for row in read_prices().records
+    }
+    items = [
+        OriginLocation(
+            state=names[key][0], district=names[key][1], market=names[key][2],
+            latitude=position[0], longitude=position[1],
+        )
+        for key, position in coords.items()
+        if key in names and key[0] == state.casefold()
+        and (not district or key[1] == district.casefold())
+    ]
+    return OriginLocations(items=sorted(items, key=lambda x: (x.district, x.market))[:500])
 
 
 @router.get("/compare", response_model=PriceResponse)
@@ -116,6 +154,11 @@ async def road_compare_markets(request: RoadCompareRequest) -> RoadCompareRespon
 async def net_compare_markets(request: RoadCompareRequest) -> NetDecisionResponse:
     """Price minus farmer-supplied road costs; only recent verified matches can rank."""
     snapshot = read_prices()
+    if not snapshot.metadata.verified:
+        return NetDecisionResponse(
+            status="no_matching_verified_markets",
+            message="No verified price observations; no market ranking produced",
+        )
     try:
         results, missing, registry_present = await compare_roads(snapshot.records, request)
     except RoutingNotConfigured as exc:

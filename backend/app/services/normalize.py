@@ -1,8 +1,9 @@
 """Normalize government rows without guessing missing dates, prices or varieties."""
 
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
 
@@ -21,12 +22,14 @@ def _optional_text(value: object) -> str | None:
 
 def _date(value: object) -> date:
     if isinstance(value, date) and not isinstance(value, datetime):
+        if value > datetime.now(ZoneInfo("Asia/Kolkata")).date():
+            raise ValueError("Reporting date cannot be in the future")
         return value
     raw = _text(value)
     for format_string in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"):
         try:
             result = datetime.strptime(raw, format_string).date()
-            if result > datetime.now(UTC).date():
+            if result > datetime.now(ZoneInfo("Asia/Kolkata")).date():
                 raise ValueError("Reporting date cannot be in the future")
             return result
         except ValueError:

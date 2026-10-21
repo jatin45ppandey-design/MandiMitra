@@ -52,7 +52,7 @@ def main() -> None:
     parser.add_argument("--source-url", required=True)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--offline-state", default=None, help="Filter bundled offline subset to one state")
-    parser.add_argument("--offline-limit", type=int, default=1200)
+    parser.add_argument("--offline-limit", type=int, default=3000)
     parser.add_argument("--no-export", action="store_true", help="Skip publishing verified snapshots")
     parser.add_argument(
         "--confirm-official-source", action="store_true",

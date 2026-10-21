@@ -1,0 +1,52 @@
+name: AGMARKNET verified snapshot artifact
+
+on:
+  schedule:
+    - cron: '20 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-verified-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATA_GOV_API_KEY: ${{ secrets.MANDIMITRA_DATA_GOV_API_KEY }}
+      DATABASE_BACKEND: snapshot
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check secret availability
+        id: credentials
+        shell: bash
+        run: |
+          if [ -z "$DATA_GOV_API_KEY" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "No API secret configured. Skipping automatic fetch."
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install backend
+        if: steps.credentials.outputs.enabled == 'true'
+        run: python -m pip install -e .
+      - name: Retrieve and package genuine government observations
+        if: steps.credentials.outputs.enabled == 'true'
+        run: |
+          python -m scripts.sync_mandi_catalog --page-size 1000 --max-pages 25 --offline-state "Uttar Pradesh" --offline-limit 3000
+      - name: Upload reviewed-data candidate
+        if: steps.credentials.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mandimitra-verified-snapshot
+          path: |
+            backend/data/snapshots/mandi-snapshot.json
+            frontend/public/data/mandi-snapshot.json
+          if-no-files-found: error
+          retention-days: 7

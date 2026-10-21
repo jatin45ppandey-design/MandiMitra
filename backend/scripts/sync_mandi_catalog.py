@@ -13,11 +13,7 @@ from app.repositories.history import HistoryRepository
 from app.schemas.prices import MandiSnapshot, SnapshotMetadata
 from app.services.agmarknet import AgmarknetClient, DataGovError
 from app.services.normalize import normalize_records
-from scripts.fetch_mandi_data import (
-    BACKEND_SNAPSHOT,
-    FRONTEND_SNAPSHOT,
-    _atomic_json_write,
-)
+from app.services.offline_pack import balanced_offline_records
 
 
 async def sync(
@@ -64,32 +60,17 @@ async def sync(
 
 
 def _offline_subset(snapshot: MandiSnapshot, *, state: str, limit: int) -> MandiSnapshot:
-    rows = [
-        row for row in snapshot.records
-        if row.state.casefold() == state.casefold()
-    ]
-    rows = sorted(
-        rows,
-        key=lambda r: (
-            -r.arrival_date.toordinal(), r.district.casefold(),
-            r.commodity.casefold(), r.market.casefold(),
-        ),
-    )[:limit]
-    if not rows:
-        raise ValueError(
-            "No official records match the requested offline state; "
-            "previous offline snapshot was preserved."
-        )
+    """Compatibility helper for callers that select a verified offline state."""
+    rows = balanced_offline_records(snapshot.records, state=state, limit=limit)
     return MandiSnapshot(
         metadata=SnapshotMetadata(
             source=snapshot.metadata.source,
             fetched_at=snapshot.metadata.fetched_at,
-            latest_report_date=max(r.arrival_date for r in rows),
             record_count=len(rows),
-            verified=True,
+            latest_report_date=max(item.arrival_date for item in rows),
+            verified=snapshot.metadata.verified,
             partial=True,
             filters={"state": state, "offline_limit": str(limit)},
-            rejected_records=0,
         ),
         records=rows,
     )
@@ -104,11 +85,11 @@ def main() -> None:
         "--offline-state",
         help="Optionally package real records from one state for offline PWA use",
     )
-    parser.add_argument("--offline-limit", type=int, default=600)
+    parser.add_argument("--offline-limit", type=int, default=3000)
     args = parser.parse_args()
     if not 1 <= args.page_size <= 1000 or not 1 <= args.max_pages <= 250:
         parser.error("Invalid pagination bounds")
-    if args.offline_state and not 1 <= args.offline_limit <= 2000:
+    if not 1 <= args.offline_limit <= 5000:
         parser.error("--offline-limit must be between 1 and 2000")
     try:
         snapshot = asyncio.run(sync(page_size=args.page_size, max_pages=args.max_pages))
@@ -132,17 +113,15 @@ def main() -> None:
     else:
         raise SystemExit("DATABASE_BACKEND must be postgres or snapshot")
 
-    _atomic_json_write(BACKEND_SNAPSHOT, snapshot.model_dump(mode="json"))
-    print("Stored verified price history and backend snapshot.")
-    if args.offline_state:
-        offline = _offline_subset(
-            snapshot, state=args.offline_state, limit=args.offline_limit
-        )
-        _atomic_json_write(FRONTEND_SNAPSHOT, offline.model_dump(mode="json"))
-        print(
-            f"Published {len(offline.records)} real offline records "
-            f"for {args.offline_state}."
-        )
+    # Export from cumulative verified history, rather than only today's API page.
+    # This keeps genuinely reported multi-day trends available in the offline PWA.
+    from scripts.export_offline_snapshot import export_verified
+
+    full, offline = export_verified(
+        offline_state=args.offline_state, limit=args.offline_limit,
+    )
+    print(f"Published {full} cumulative verified records and {offline} offline records.")
+
 
 
 if __name__ == "__main__":

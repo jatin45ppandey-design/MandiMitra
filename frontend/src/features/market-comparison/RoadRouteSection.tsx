@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { LocateFixed, MapPinned, Navigation, Route, Truck } from 'lucide-react'
 import { useAppState } from '../../app/app-state-context'
 import { Button } from '../../components/ui/Button'
 import { FeedbackPanel } from '../../components/ui/FeedbackPanel'
 import { translate } from '../../i18n/translations'
-import { compareNetDeals } from '../../services/api'
+import { compareNetDeals, getVerifiedOrigins } from '../../services/api'
 import type { RoadCompareInput } from '../../types/mandi'
 import { formatCurrency, formatReportedDate } from '../../utils/format'
 
@@ -29,6 +29,12 @@ export function RoadRouteSection({ state, commodity, variety, grade }: RoadRoute
   const [message, setMessage] = useState('')
   const [locating, setLocating] = useState(false)
   const mutation = useMutation({ mutationFn: compareNetDeals })
+  const originsQuery = useQuery({
+    queryKey: ['verified-mandi-origins', state],
+    queryFn: () => getVerifiedOrigins(state),
+    staleTime: 60 * 60_000,
+  })
+  const [chosenOrigin, setChosenOrigin] = useState('')
 
   const submit = (coords?: { latitude: number; longitude: number }) => {
     setMessage('')
@@ -105,6 +111,37 @@ export function RoadRouteSection({ state, commodity, variety, grade }: RoadRoute
       <form onSubmit={(event) => { event.preventDefault(); submit() }} noValidate>
         <fieldset disabled={busy}>
           <legend className="mb-3 text-sm font-semibold text-forest-950">{t('roadLocation')}</legend>
+          <div className="mb-4">
+            <label htmlFor="origin-mandi" className="block text-sm font-semibold text-forest-950">
+              {language === 'hi' ? 'नज़दीकी मंडी से शुरुआत करें (GPS के बिना)' : 'Start from a known mandi (without GPS)'}
+            </label>
+            <select id="origin-mandi" value={chosenOrigin}
+              onChange={event => {
+                const value = event.target.value
+                setChosenOrigin(value)
+                const item = value === '' ? undefined : originsQuery.data?.items[Number(value)]
+                if (item) {
+                  setLatitude(item.latitude.toString())
+                  setLongitude(item.longitude.toString())
+                }
+              }}
+              className="mt-2 min-h-12 w-full rounded-xl bg-sage-50 px-3 text-sm text-forest-950"
+            >
+              <option value="">{language === 'hi' ? 'मंडी चुनें (वैकल्पिक)' : 'Choose a mandi (optional)'}</option>
+              {originsQuery.data?.items.map((item, index) => (
+                <option key={[item.state, item.district, item.market].join('|')} value={String(index)}>
+                  {item.market} · {item.district}
+                </option>
+              ))}
+            </select>
+            {originsQuery.data?.items.length === 0 ? (
+              <p className="mt-2 text-xs text-ink-600">
+                {language === 'hi'
+                  ? 'मंडी के सत्यापित स्थान अभी नहीं जोड़े गए हैं; GPS या निर्देशांक इस्तेमाल करें।'
+                  : 'Verified mandi locations not configured; use GPS or manual coordinates.'}
+              </p>
+            ) : null}
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-sm font-medium text-forest-950">
               {t('roadLat')}
