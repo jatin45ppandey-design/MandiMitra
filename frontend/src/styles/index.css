@@ -1,12 +1,115 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Noto Sans Devanagari", "Nirmala UI", "Mukta", ui-sans-serif, system-ui, sans-serif;
+  --color-forest-950: #12352a;
+  --color-forest-900: #174b37;
+  --color-forest-800: #236046;
+  --color-forest-700: #2f7353;
+  --color-sage-50: #f2f6ed;
+  --color-sage-100: #e5eedf;
+  --color-sage-200: #d0dfc8;
+  --color-sage-400: #8cab80;
+  --color-harvest-100: #f7ecd5;
+  --color-harvest-500: #bf8428;
+  --color-harvest-600: #9f6818;
+  --color-ivory: #fbfaf4;
+  --color-paper: #fffdf8;
+  --color-ink-950: #183029;
+  --color-ink-600: #566a62;
+  --color-ink-500: #6d7c75;
+  --color-ink-400: #89958f;
+  --shadow-panel: 0 18px 45px -30px rgb(18 53 42 / 0.45);
+}
+
 :root {
-  font-family: Inter, "Noto Sans Devanagari", system-ui, sans-serif;
-  color: #123324;
-  background: #f7f9f5;
+  font-family: var(--font-sans);
+  color: var(--color-ink-950);
+  background: var(--color-ivory);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
-* { box-sizing: border-box; }
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100dvh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    linear-gradient(rgb(255 253 248 / 0.84), rgb(255 253 248 / 0.96)),
+    radial-gradient(circle at 20% 10%, rgb(229 238 223 / 0.9), transparent 36%);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  scroll-margin-top: 6rem;
+}
+
+::selection {
+  color: white;
+  background: var(--color-forest-800);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e8eee4 25%, #f5f7f1 50%, #e8eee4 75%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.35s ease-in-out infinite;
+}
+
+@keyframes skeleton-sweep {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (pointer: fine) {
+  html { overscroll-behavior: none; }
+}
 
