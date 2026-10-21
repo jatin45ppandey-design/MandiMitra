@@ -51,6 +51,9 @@ def main() -> None:
     parser.add_argument("--file", type=Path, required=True)
     parser.add_argument("--source-url", required=True)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--offline-state", default=None, help="Filter bundled offline subset to one state")
+    parser.add_argument("--offline-limit", type=int, default=1200)
+    parser.add_argument("--no-export", action="store_true", help="Skip publishing verified snapshots")
     parser.add_argument(
         "--confirm-official-source", action="store_true",
         help="Confirm this file was downloaded directly from the stated official OGD page",
@@ -60,6 +63,10 @@ def main() -> None:
         parser.error("Official source confirmation required for persistent import")
     accepted, rejected = import_csv(args.file, source_url=args.source_url, dry_run=args.dry_run)
     print(f"Validated {accepted} records, rejected {rejected}. Dry run: {args.dry_run}")
+    if not args.dry_run and not args.no_export:
+        from scripts.export_offline_snapshot import export_verified
+        full, offline = export_verified(offline_state=args.offline_state, limit=args.offline_limit)
+        print(f"Published {full} stored observations; {offline} genuine offline records.")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
-import { CalendarDays, Check, Heart, Landmark, RefreshCw, ShieldCheck } from 'lucide-react'
+import { ArrowDownRight, ArrowRight, ArrowUpRight, CalendarDays, Check, Heart, Landmark, RefreshCw, ShieldCheck } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { useAppState } from '../../app/app-state-context'
 import { FeedbackPanel } from '../../components/ui/FeedbackPanel'
 import { Skeleton } from '../../components/ui/Skeleton'
@@ -6,6 +7,7 @@ import type { useMarketSearch } from '../../hooks/useMarketSearch'
 import { translate } from '../../i18n/translations'
 import { formatCurrency, formatFetchedAt, formatReportedDate, getFreshnessDays } from '../../utils/format'
 import { PriceActions } from './PriceActions'
+import { getTrends } from '../../services/api'
 
 type MarketSearchState = ReturnType<typeof useMarketSearch>
 
@@ -14,6 +16,22 @@ export function LatestPriceCard({ market }: { market: MarketSearchState }) {
   const t = (key: Parameters<typeof translate>[1], replacements?: Record<string, string | number>) =>
     translate(language, key, replacements)
   const locale = language === 'hi' ? 'hi-IN' : 'en-IN'
+  const chosen = market.selectedRecord
+  const movement = useQuery({
+    queryKey: ['main-price-movement', chosen?.state, chosen?.district, chosen?.market, chosen?.commodity, chosen?.variety, chosen?.grade],
+    queryFn: () => getTrends({
+      state: chosen!.state, district: chosen!.district, market: chosen!.market,
+      commodity: chosen!.commodity, variety: chosen!.variety ?? undefined,
+      grade: chosen!.grade ?? undefined,
+    }),
+    enabled: Boolean(chosen && market.pricesQuery.data?.verified),
+    staleTime: 5 * 60_000,
+  })
+  const history = movement.data?.observations ?? []
+  const last = history.at(-1)
+  const before = history.at(-2)
+  const difference = last && before ? last.modal_price - before.modal_price : null
+  const MovementIcon = difference === null || difference === 0 ? ArrowRight : difference > 0 ? ArrowUpRight : ArrowDownRight
 
   if (!market.ready) {
     return (
@@ -109,6 +127,20 @@ export function LatestPriceCard({ market }: { market: MarketSearchState }) {
             {formatCurrency(record.modal_price, language)}
           </p>
           <p className="mt-1 text-sm text-sage-200">{t('perQuintal')}</p>
+          <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-sm text-white">
+            <MovementIcon size={20} aria-hidden="true"/>
+            {difference === null ? (language === 'hi' ? 'पिछला तुलनीय रिपोर्टेड भाव उपलब्ध नहीं' : 'No previous comparable report')
+              : difference === 0 ? t('unchanged')
+              : (difference > 0 ? t('increased') : t('decreased')) + ': ' + formatCurrency(Math.abs(difference), language)}
+            {before ? <span className="text-xs text-sage-200">
+              ({formatReportedDate(before.report_date, locale)} {language === 'hi' ? 'से' : 'vs previous'})
+            </span> : null}
+          </div>
+          {market.pricesQuery.data?.origin === 'bundled-snapshot' ? (
+            <p className="mt-3 text-xs font-semibold text-sage-100">
+              {language === 'hi' ? 'ऑफ़लाइन सहेजा गया सत्यापित रिकॉर्ड' : 'Bundled verified offline record'}
+            </p>
+          ) : null}
         </div>
         <dl className="mt-7 grid grid-cols-2 gap-3">
           <div className="rounded-2xl bg-white/8 p-4">

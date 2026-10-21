@@ -1,4 +1,5 @@
 import { readBundledSnapshot } from './offline-data'
+import { offlineTrends, offlineCompare } from './offline-analytics'
 import type {
   ListingResponse,
   MarketPrice,
@@ -195,7 +196,10 @@ export async function getTrends(params: {
   district: string
   market: string
   variety?: string
+  grade?: string
+  from_date?: string
 }): Promise<TrendResponse> {
+  try {
   const response = await request<Omit<TrendResponse, 'observations'> & {
     observations: Array<Omit<TrendResponse['observations'][number], 'modal_price'> & { modal_price: number | string }>
   }>(`/trends${buildQuery(params)}`)
@@ -206,6 +210,10 @@ export async function getTrends(params: {
       modal_price: numericField(item.modal_price, 'trend modal price'),
     })),
   }
+  } catch (error) {
+    if (error instanceof ApiError && error.status !== 0) throw error
+    return offlineTrends(await readBundledSnapshot(), params)
+  }
 }
 
 export function compareMarkets(params: {
@@ -215,7 +223,10 @@ export function compareMarkets(params: {
   variety: string
   grade: string
 }): Promise<PriceResponse> {
-  return request<PriceResponse>(`/markets/compare${buildQuery(params)}`)
+  return request<PriceResponse>(`/markets/compare${buildQuery(params)}`).catch(async error => {
+    if (error instanceof ApiError && error.status !== 0) throw error
+    return offlineCompare(await readBundledSnapshot(), params)
+  })
 }
 
 export function getNearbyMarkets(params: {
@@ -290,8 +301,21 @@ export function getNotifications(token: string): Promise<NotificationResponse> {
 export const apiBaseUrl = baseUrl
 
 
-export function getDataCoverage(): Promise<DataCoverageResponse> {
-  return request<DataCoverageResponse>('/data/coverage')
+export async function getDataCoverage(): Promise<DataCoverageResponse> {
+  try {
+    return await request<DataCoverageResponse>('/data/coverage')
+  } catch (error) {
+    if (error instanceof ApiError && error.status !== 0) throw error
+    const snapshot = await readBundledSnapshot()
+    return {
+      verified:snapshot.metadata.verified && snapshot.records.length>0,
+      record_count:snapshot.records.length,
+      latest_report_date:snapshot.metadata.latest_report_date,
+      source:snapshot.metadata.source,
+      verified_market_coordinates:0,
+      note:'Bundled offline snapshot; not a live government quote',
+    }
+  }
 }
 
 export async function compareRoadRoutes(
