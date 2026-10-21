@@ -1,9 +1,9 @@
 """Normalize government rows without guessing missing dates, prices or varieties."""
 
 from datetime import date, datetime
-from zoneinfo import ZoneInfo
 from decimal import Decimal, InvalidOperation
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
 

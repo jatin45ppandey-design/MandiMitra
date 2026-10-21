@@ -1,7 +1,7 @@
 """Freshness-aware road-deal estimates; no guaranteed sale claims."""
 from datetime import date, datetime
-from zoneinfo import ZoneInfo
 from typing import Literal
+from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, Field
 
