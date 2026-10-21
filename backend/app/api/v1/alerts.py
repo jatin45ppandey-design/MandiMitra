@@ -1,5 +1,7 @@
 from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException
+
 from app.core.auth import current_user_id
 from app.repositories import alerts as repository
 from app.schemas.alerts import AlertCreate, AlertView, PreferenceUpdate
