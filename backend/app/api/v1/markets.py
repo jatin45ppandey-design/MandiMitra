@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
 from app.repositories.prices import read_prices
 from app.schemas.prices import PriceResponse
@@ -11,9 +12,6 @@ from app.services.price_service import build_price_response, filter_prices
 from app.services.road_comparison import compare_roads
 
 router = APIRouter(prefix="/markets", tags=["markets"])
-
-
-from pydantic import BaseModel
 
 
 class OriginLocation(BaseModel):
@@ -51,8 +49,6 @@ def verified_origin_locations(
         and (not district or key[1] == district.casefold())
     ]
     return OriginLocations(items=sorted(items, key=lambda x: (x.district, x.market))[:500])
-
-
 
 
 @router.get("/compare", response_model=PriceResponse)
