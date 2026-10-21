@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { buildQuery, estimateTransport, getAlerts, getPrices } from './api'
+import { buildQuery, compareRoadRoutes, estimateTransport, getAlerts, getDataCoverage, getPrices } from './api'
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -90,3 +90,70 @@ describe('API contract client', () => {
   })
 })
 
+
+describe('road routing and real-data coverage', () => {
+  it('passes market selections to the backend and converts Decimal results', async () => {
+    stubBrowserTimers()
+    const mock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      status: 'ok',
+      source: 'OpenRouteService',
+      distance_type: 'road_route',
+      latest_report_date: '2026-10-20',
+      excluded_without_coordinates: 0,
+      message: 'test response',
+      disclaimer: 'estimates only',
+      markets: [{
+        observation: {
+          state: 'Test State', district: 'Test District', market: 'Test Market',
+          commodity: 'Wheat', variety: 'Dara', grade: 'FAQ',
+          arrival_date: '2026-10-20', modal_price: 2500,
+        },
+        distance_km: 42.5,
+        duration_minutes: 65,
+        route_status: 'available',
+        estimate: {
+          gross_proceeds: '25000', transport_cost: '925',
+          net_proceeds: '24075', currency: 'INR', estimated: true,
+        },
+      }],
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+    vi.stubGlobal('fetch', mock)
+    const response = await compareRoadRoutes({
+      state: 'Test State', commodity: 'Wheat', variety: 'Dara', grade: 'FAQ',
+      latitude: 20, longitude: 80, radius_km: 150,
+      quantity_quintals: 10, cost_per_km: 10, fixed_cost: 500,
+    })
+    const request = mock.mock.calls[0] as [string, RequestInit]
+    expect(request[0]).toContain('/markets/road-compare')
+    expect(JSON.parse(request[1].body as string).quantity_quintals).toBe(10)
+    expect(response.markets[0].estimate?.net_proceeds).toBe(24075)
+  })
+
+  it('does not invent road distances when coordinates are unavailable', async () => {
+    stubBrowserTimers()
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      status: 'coordinates_unavailable', source: 'OpenRouteService',
+      distance_type: 'road_route', markets: [],
+      latest_report_date: null, excluded_without_coordinates: 0,
+      message: 'No registry', disclaimer: 'Estimates only',
+    }), { status: 200 })))
+    const response = await compareRoadRoutes({
+      state: 'Test State', commodity: 'Wheat', variety: 'Dara', grade: 'FAQ',
+      latitude: 20, longitude: 80,
+    })
+    expect(response.status).toBe('coordinates_unavailable')
+    expect(response.markets).toEqual([])
+  })
+
+  it('retrieves data coverage instead of assuming healthy API means data exists', async () => {
+    stubBrowserTimers()
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      verified: false, record_count: 0, latest_report_date: null,
+      verified_market_coordinates: 0, source: 'AGMARKNET',
+      note: 'No verified data',
+    }), { status: 200 })))
+    const coverage = await getDataCoverage()
+    expect(coverage.verified).toBe(false)
+    expect(coverage.record_count).toBe(0)
+  })
+})
