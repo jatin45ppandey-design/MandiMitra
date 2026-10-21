@@ -33,7 +33,7 @@ def export_verified(*, offline_state: str | None = None, limit: int = 1200) -> t
         raise ValueError("No verified records in selected offline state; files untouched.")
     offline_rows = offline_rows[:limit]
     now = datetime.now(UTC)
-    common = dict(source=source.metadata.source, fetched_at=now, verified=True, partial=True)
+    common = {"source": source.metadata.source, "fetched_at": now, "verified": True, "partial": True}
     full = MandiSnapshot(metadata=SnapshotMetadata(
         **common, record_count=len(records),
         latest_report_date=max(r.arrival_date for r in records),

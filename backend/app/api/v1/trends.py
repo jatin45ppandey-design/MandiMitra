@@ -1,5 +1,6 @@
 """Same-market, same-variety, same-grade real reported observations only."""
 from datetime import date
+
 from fastapi import APIRouter, Query
 
 from app.repositories.prices import read_prices
