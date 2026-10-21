@@ -1,8 +1,9 @@
 """Explicit migrations. Never automatically modify a hosted DB on API startup."""
 from pathlib import Path
-from sqlalchemy import text
-from app.db.postgres import engine
 
+from sqlalchemy import text
+
+from app.db.postgres import engine
 
 def main() -> None:
     schema = (Path(__file__).resolve().parents[1] / "app" / "db" / "schema.sql").read_text()
