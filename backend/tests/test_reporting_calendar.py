@@ -1,7 +1,6 @@
 """Report dates use the market's local day and cannot be fabricated in the future."""
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
-from datetime import datetime
 
 import pytest
 
