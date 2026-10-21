@@ -5,7 +5,6 @@ from app.schemas.prices import MarketPrice
 from app.services.alert_engine import crosses
 
 
-
 def observation(value: str) -> MarketPrice:
     return MarketPrice(state="UP", district="Lucknow", market="A",
                        commodity="Wheat", variety="Dara", grade="FAQ",

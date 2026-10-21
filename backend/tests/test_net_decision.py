@@ -6,7 +6,6 @@ from app.schemas.road_comparison import RoadEstimate, RoadMarketResult
 from app.services.net_decision import build_decision
 
 
-
 def item(day, market, price, net):
     return RoadMarketResult(
         observation=MarketPrice(state="UP", district="Lucknow", market=market,
