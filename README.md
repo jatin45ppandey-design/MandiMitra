@@ -101,6 +101,60 @@ Useful official references:
 - Keep a verified, provenance-tagged snapshot for offline use.
 - Market comparison must not claim "nearest" until verified geolocation/distance data exists.
 
+
+## Phase 1 — fetch verified government records (private key stays local)
+
+The backend now includes real data.gov.in API ingestion. It validates reported dates,
+numerical prices, market identities, and writes dated snapshots atomically.
+
+From **Windows PowerShell**:
+
+```powershell
+# Terminal in your local MandiMitra clone:
+git pull origin main
+cd backend
+
+# Only if you have not already created backend/.env:
+Copy-Item .env.example .env
+notepad .env
+```
+
+Replace `DATA_GOV_API_KEY=` with your **own** data.gov.in API key in `backend/.env`.
+Do not paste the key in chat, screenshots, or GitHub.
+
+Install the backend as shown above, then run from the **backend** directory:
+
+```powershell
+# Safely test access; does not change any files:
+python -m scripts.fetch_mandi_data --state "Uttar Pradesh" --commodity "Wheat" --page-size 10 --pages 1 --dry-run
+
+# Import up to 5 pages of real records into both snapshots:
+python -m scripts.fetch_mandi_data --state "Uttar Pradesh" --commodity "Wheat" --page-size 100 --pages 5
+
+# Optional narrower scope:
+python -m scripts.fetch_mandi_data --state "Uttar Pradesh" --commodity "Wheat" --district "Lucknow" --pages 3
+```
+
+If the official service rejects your key, returns no records, or times out,
+**nothing is overwritten**. The error output is intentionally sanitized so your
+API key is not printed.
+
+After import, start the FastAPI backend and open:
+- http://localhost:8000/api/v1/commodities
+- http://localhost:8000/api/v1/prices?state=Uttar%20Pradesh&commodity=Wheat
+
+The backend snapshot is `backend/data/snapshots/mandi-snapshot.json`.
+The PWA copy is `frontend/public/data/mandi-snapshot.json`.
+Both contain public rate observations, source attribution, actual reporting
+dates, whether the fetch was partial, and the set of applied filters.
+**No API credential is saved in either snapshot.**
+
+**Important limitation:** Importing the current daily-price resource does not
+guarantee seven days of history. Only draw trends for genuinely reported dates.
+The Phase 0 frontend shell still needs Phase 2 wiring before imported rates
+appear automatically in the UI. Phase 1 ingestion does **not** imply a live
+production feed or comprehensive nearby-mandi coverage.
+
 ## Next phases
 
 See [docs/implementation-plan.md](docs/implementation-plan.md).
