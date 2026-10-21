@@ -1,7 +1,8 @@
 from decimal import Decimal
-from pydantic import BaseModel, Field
-from app.services.transport import estimated_net_proceeds
 
+from pydantic import BaseModel, Field
+
+from app.services.transport import estimated_net_proceeds
 
 class TransportInput(BaseModel):
     rate_per_quintal: Decimal = Field(gt=0)
