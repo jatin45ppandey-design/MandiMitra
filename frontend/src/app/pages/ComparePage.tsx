@@ -2,6 +2,7 @@ import { useAppState } from '../app-state-context'
 import { SectionReveal } from '../../components/ui/SectionReveal'
 import { CompareSection } from '../../features/market-comparison/CompareSection'
 import { NearbySection } from '../../features/market-comparison/NearbySection'
+import { RoadRouteSection } from '../../features/market-comparison/RoadRouteSection'
 import { PriceSearchPanel } from '../../features/mandi-prices/PriceSearchPanel'
 import { useMarketSearch } from '../../hooks/useMarketSearch'
 import { translate } from '../../i18n/translations'
@@ -24,6 +25,19 @@ export function ComparePage() {
         <div className="mt-6">
           <SectionReveal>
             <NearbySection commodity={market.selections.commodity} variety={market.effectiveVariety} grade={market.effectiveGrade} />
+          </SectionReveal>
+        </div>
+      ) : null}
+      {canUseNearby && market.selections.state ? (
+        <div className="mt-6">
+          <SectionReveal>
+            <RoadRouteSection
+              key={[market.selections.state, market.selections.commodity, market.effectiveVariety, market.effectiveGrade].join('|')}
+              state={market.selections.state}
+              commodity={market.selections.commodity}
+              variety={market.effectiveVariety}
+              grade={market.effectiveGrade}
+            />
           </SectionReveal>
         </div>
       ) : null}
