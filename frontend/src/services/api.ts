@@ -11,6 +11,9 @@ import type {
   TransportInput,
   TransportResult,
   TrendResponse,
+  RoadCompareInput,
+  RoadCompareResponse,
+  DataCoverageResponse,
 } from '../types/mandi'
 
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api/v1').replace(
@@ -286,3 +289,32 @@ export function getNotifications(token: string): Promise<NotificationResponse> {
 
 export const apiBaseUrl = baseUrl
 
+
+export function getDataCoverage(): Promise<DataCoverageResponse> {
+  return request<DataCoverageResponse>('/data/coverage')
+}
+
+export async function compareRoadRoutes(
+  input: RoadCompareInput,
+): Promise<RoadCompareResponse> {
+  const response = await request<RoadCompareResponse>(
+    '/markets/road-compare',
+    { method: 'POST', body: JSON.stringify(input) },
+  )
+  return {
+    ...response,
+    markets: response.markets.map((market) => ({
+      ...market,
+      distance_km: market.distance_km === null
+        ? null : numericField(market.distance_km, 'road distance'),
+      duration_minutes: market.duration_minutes === null
+        ? null : numericField(market.duration_minutes, 'driving time'),
+      estimate: market.estimate ? {
+        ...market.estimate,
+        gross_proceeds: numericField(market.estimate.gross_proceeds, 'gross proceeds'),
+        transport_cost: numericField(market.estimate.transport_cost, 'transport cost'),
+        net_proceeds: numericField(market.estimate.net_proceeds, 'net proceeds'),
+      } : null,
+    })),
+  }
+}
