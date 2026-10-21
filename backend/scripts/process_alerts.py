@@ -15,7 +15,7 @@ def process() -> int:
             "SELECT * FROM price_alerts WHERE enabled=TRUE AND channel='in_app'"
         )).mappings()]
         observations = db.execute(text(
-            "SELECT identity,record FROM mandi_observations"
+            "SELECT identity,record,imported_at FROM mandi_observations"
         )).mappings().all()
         for item in observations:
             payload = item["record"]
@@ -23,6 +23,8 @@ def process() -> int:
                 json.loads(payload) if isinstance(payload, str) else payload
             )
             for alert in alerts:
+                if item["imported_at"] < alert["created_at"]:
+                    continue
                 if not matches(alert, record):
                     continue
                 result = db.execute(text("""
