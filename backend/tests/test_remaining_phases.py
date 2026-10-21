@@ -50,9 +50,11 @@ def test_matching_and_hindi_digest() -> None:
         commodity="Wheat", variety="Dara", grade="FAQ",
         arrival_date=date(2026, 10, 20), modal_price=Decimal("2600"),
     )
-    alert = dict(state="Uttar Pradesh", district="Lucknow",
-                 market="Market A", commodity="Wheat", variety="Dara",
-                 grade="FAQ", threshold=Decimal("2500"), direction="above")
+    alert = {
+        "state": "Uttar Pradesh", "district": "Lucknow",
+        "market": "Market A", "commodity": "Wheat", "variety": "Dara",
+        "grade": "FAQ", "threshold": Decimal("2500"), "direction": "above",
+    }
     assert matches(alert, record)
     assert "2026-10-20" in hindi_digest(record)
     alert["direction"] = "below"
