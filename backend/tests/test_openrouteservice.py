@@ -113,6 +113,8 @@ def test_road_request_requires_matching_cost_inputs() -> None:
         _request(cost_per_km="20")
     with pytest.raises(ValidationError):
         _request(latitude=200)
+    with pytest.raises(ValidationError):
+        _request(fixed_cost="500")
 
 
 def test_comparison_preserves_latest_rate_and_costs(monkeypatch) -> None:
