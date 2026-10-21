@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from app.services.earnings import TransportInput, TransportResult, calculate
 
 router = APIRouter(prefix="/transport", tags=["transport"])
