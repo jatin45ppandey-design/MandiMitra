@@ -85,7 +85,11 @@ def test_csv_dry_run_does_not_create_history(tmp_path, monkeypatch) -> None:
         lambda: HistoryRepository(db_path),
     )
     accepted, rejected = import_csv(
-        path, source_url="https://data.gov.in/catalog/current-daily-price-various-commodities-various-markets-mandi",
+        path,
+        source_url=(
+            "https://data.gov.in/catalog/"
+            "current-daily-price-various-commodities-various-markets-mandi"
+        ),
         dry_run=True,
     )
     assert (accepted, rejected) == (1, 0)
