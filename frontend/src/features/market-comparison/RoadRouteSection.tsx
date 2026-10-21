@@ -119,7 +119,7 @@ export function RoadRouteSection({ state, commodity, variety, grade }: RoadRoute
               onChange={event => {
                 const value = event.target.value
                 setChosenOrigin(value)
-                const item = originsQuery.data?.items[Number(value)]
+                const item = value === '' ? undefined : originsQuery.data?.items[Number(value)]
                 if (item) {
                   setLatitude(item.latitude.toString())
                   setLongitude(item.longitude.toString())

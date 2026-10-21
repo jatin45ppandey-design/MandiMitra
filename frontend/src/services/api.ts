@@ -40,6 +40,11 @@ export class ApiError extends Error {
 
 type QueryValue = string | number | undefined | null
 
+/** Fall back only on transport/server problems; client validation errors must surface. */
+export function canUseOfflineFallback(error: unknown): boolean {
+  return error instanceof ApiError && [0, 408, 429, 500, 502, 503, 504].includes(error.status)
+}
+
 export function buildQuery(params: Record<string, QueryValue>): string {
   const search = new URLSearchParams()
   Object.entries(params).forEach(([key, value]) => {
@@ -134,7 +139,7 @@ async function listingWithFallback(
   try {
     return { ...(await request<ListingResponse>(path)), origin: 'api' }
   } catch (error) {
-    if (error instanceof ApiError && error.status !== 0) throw error
+    if (!canUseOfflineFallback(error)) throw error
     const snapshot = await readBundledSnapshot()
     const records = state
       ? snapshot.records.filter(
@@ -177,7 +182,7 @@ export async function getPrices(filters: {
     const response = await request<PriceResponse>(`/prices${buildQuery(filters)}`)
     return { ...response, origin: 'api' }
   } catch (error) {
-    if (error instanceof ApiError && error.status !== 0) throw error
+    if (!canUseOfflineFallback(error)) throw error
     const snapshot = await readBundledSnapshot()
     const records = filterSnapshotRecords(snapshot.records, filters)
     return {
@@ -212,7 +217,7 @@ export async function getTrends(params: {
     })),
   }
   } catch (error) {
-    if (error instanceof ApiError && error.status !== 0) throw error
+    if (!canUseOfflineFallback(error)) throw error
     return offlineTrends(await readBundledSnapshot(), params)
   }
 }
@@ -225,7 +230,7 @@ export function compareMarkets(params: {
   grade: string
 }): Promise<PriceResponse> {
   return request<PriceResponse>(`/markets/compare${buildQuery(params)}`).catch(async error => {
-    if (error instanceof ApiError && error.status !== 0) throw error
+    if (!canUseOfflineFallback(error)) throw error
     return offlineCompare(await readBundledSnapshot(), params)
   })
 }
@@ -306,7 +311,7 @@ export async function getDataCoverage(): Promise<DataCoverageResponse> {
   try {
     return await request<DataCoverageResponse>(`/data/coverage${buildQuery(filters)}`)
   } catch (error) {
-    if (error instanceof ApiError && error.status !== 0) throw error
+    if (!canUseOfflineFallback(error)) throw error
     const snapshot = await readBundledSnapshot()
     const filtered = snapshot.records.filter(r =>
       (!filters.state || r.state.toLowerCase() === filters.state.toLowerCase())
