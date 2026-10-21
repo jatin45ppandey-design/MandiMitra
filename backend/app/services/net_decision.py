@@ -1,5 +1,6 @@
 """Freshness-aware road-deal estimates; no guaranteed sale claims."""
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -37,7 +38,7 @@ def build_decision(
     excluded_without_coordinates: int = 0,
     today: date | None = None,
 ) -> NetDecisionResponse:
-    today = today or date.today()
+    today = today or datetime.now(ZoneInfo("Asia/Kolkata")).date()
     newest = max((item.observation.arrival_date for item in candidates), default=None)
     annotated = []
     for item in candidates:

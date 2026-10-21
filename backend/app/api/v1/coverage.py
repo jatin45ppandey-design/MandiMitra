@@ -1,5 +1,6 @@
 """Read-only verified data-coverage and freshness metrics."""
-from datetime import UTC, date, datetime
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
@@ -37,7 +38,7 @@ def coverage(
         and (not commodity or row.commodity.casefold() == commodity.casefold())
     ]
     date_latest = max((r.arrival_date for r in rows), default=None)
-    age = (datetime.now(UTC).date() - date_latest).days if date_latest else None
+    age = (datetime.now(ZoneInfo("Asia/Kolkata")).date() - date_latest).days if date_latest else None
     markets = {(r.state.casefold(), r.district.casefold(), r.market.casefold()) for r in rows}
     return DataCoverage(
         verified=snapshot.metadata.verified and bool(rows),
