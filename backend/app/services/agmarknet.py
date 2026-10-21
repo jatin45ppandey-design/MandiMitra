@@ -34,8 +34,8 @@ class AgmarknetClient:
     async def fetch_page(
         self,
         *,
-        state: str,
-        commodity: str,
+        state: str | None = None,
+        commodity: str | None = None,
         district: str | None = None,
         market: str | None = None,
         limit: int = 100,
@@ -52,9 +52,11 @@ class AgmarknetClient:
             "format": "json",
             "limit": limit,
             "offset": offset,
-            "filters[state.keyword]": state,
-            "filters[commodity]": commodity,
         }
+        if state:
+            params["filters[state.keyword]"] = state
+        if commodity:
+            params["filters[commodity]"] = commodity
         if district:
             params["filters[district]"] = district
         if market:
