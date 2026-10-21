@@ -342,3 +342,18 @@ export async function compareRoadRoutes(
     })),
   }
 }
+
+export interface AdvisorEvidence {
+  market: string; state: string; district: string; commodity: string
+  variety: string | null; grade: string | null; modal_price: number
+  report_date: string; source: string; unit: string
+}
+export interface AdvisorAnswer {
+  answer: string; evidence: AdvisorEvidence[]; model: string; disclaimer: string
+}
+export function askAdvisor(input: {
+  question: string; state: string; district: string; commodity: string
+  variety: string; grade: string; market?: string; language: 'hi' | 'en'
+}): Promise<AdvisorAnswer> {
+  return request<AdvisorAnswer>('/advisor/ask', {method:'POST',body:JSON.stringify(input)})
+}

@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     data_gov_timeout_seconds: float = Field(default=45.0, ge=5, le=120)
     data_gov_max_retries: int = Field(default=1, ge=0, le=3)
     openrouteservice_api_key: str = ""
+    gemini_api_key: str = ""
+    gemma_model: str = "gemma-4-26b-a4b-it"
+    gemma_enabled: bool = False
     database_url: str = ""
     supabase_url: str = ""
     supabase_anon_key: str = ""
