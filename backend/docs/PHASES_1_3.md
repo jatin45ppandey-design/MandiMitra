@@ -18,10 +18,15 @@
 ## Phase 3: Honest comparisons
 - `/api/v1/markets/compare` returns at most one latest record per mandi+variety+grade in the chosen district.
 - To get a strictly comparable set, supply both `variety` and `grade`; without these the endpoint returns an explicit scope clarification.
-- `/api/v1/markets/nearby` does **not** invent GPS distance; it returns a 422 explaining that a verified coordinate directory is necessary.
+- `/api/v1/markets/nearby` supports straight-line radius sorting **only** for markets with verified coordinates supplied through `backend/data/reference/market-coordinates.csv`. Without the registry it returns `coordinates_unavailable` with no invented coordinates; no road-distance claims.
 - API maintains explicit reporting dates; older values are never called today's price.
 
 ## Tests / remaining gates
 - Tests were added for ingestion storage, duplicate imports and comparison.
 - Execute `python -m pytest` and `python -m ruff check .` from `backend/` after pulling this branch.
 - No live data, successful authenticated API call, or CI pass is claimed without evidence.
+
+## Phase 3 geographic data gate
+- Provide a genuinely sourced coordinate registry; see `backend/data/reference/README.md`.
+- Nearby responses include per-market observation dates and geodesic distance, not routes.
+- Do not display the result as driving distance or inferred transport cost.
