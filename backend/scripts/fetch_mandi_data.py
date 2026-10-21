@@ -8,7 +8,7 @@ import argparse
 import asyncio
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -42,7 +42,7 @@ def _atomic_json_write(path: Path, payload: dict[str, object]) -> None:
 
 async def import_prices(args: argparse.Namespace) -> MandiSnapshot:
     client = AgmarknetClient()
-    fetched_at = datetime.now(timezone.utc)
+    fetched_at = datetime.now(UTC)
     raw_records: list[dict[str, object]] = []
     total: int | None = None
     exhausted = False

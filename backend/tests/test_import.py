@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import httpx
@@ -28,7 +28,7 @@ def sample_row(**overrides: str) -> dict[str, str]:
 
 
 def test_clean_government_record_keeps_reporting_date() -> None:
-    fetched = datetime(2026, 10, 21, tzinfo=timezone.utc)
+    fetched = datetime(2026, 10, 21, tzinfo=UTC)
     record = normalize_record(sample_row(), fetched_at=fetched)
     assert record.arrival_date.isoformat() == "2026-10-20"
     assert record.modal_price == Decimal(2300)
@@ -37,7 +37,7 @@ def test_clean_government_record_keeps_reporting_date() -> None:
 
 
 def test_invalid_and_future_dates_are_rejected() -> None:
-    fetched = datetime.now(timezone.utc)
+    fetched = datetime.now(UTC)
     with pytest.raises(ValueError):
         normalize_record(sample_row(arrival_date="not-a-date"), fetched_at=fetched)
     with pytest.raises(ValueError):
@@ -48,12 +48,12 @@ def test_missing_price_not_invented() -> None:
     with pytest.raises(ValueError):
         normalize_record(
             sample_row(modal_price="-"),
-            fetched_at=datetime.now(timezone.utc),
+            fetched_at=datetime.now(UTC),
         )
 
 
 def test_duplicate_and_bad_rows() -> None:
-    fetched = datetime.now(timezone.utc)
+    fetched = datetime.now(UTC)
     accepted, rejected = normalize_records(
         [sample_row(), sample_row(), sample_row(modal_price="NA")],
         fetched_at=fetched,
@@ -63,7 +63,7 @@ def test_duplicate_and_bad_rows() -> None:
 
 
 def test_snapshot_serializes_numeric_prices_for_frontend() -> None:
-    fetched = datetime.now(timezone.utc)
+    fetched = datetime.now(UTC)
     record = normalize_record(sample_row(), fetched_at=fetched)
     snapshot = MandiSnapshot(
         metadata=SnapshotMetadata(

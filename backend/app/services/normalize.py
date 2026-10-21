@@ -1,6 +1,6 @@
 """Normalize government rows without guessing missing dates, prices or varieties."""
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
@@ -26,7 +26,7 @@ def _date(value: object) -> date:
     for format_string in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"):
         try:
             result = datetime.strptime(raw, format_string).date()
-            if result > datetime.now(timezone.utc).date():
+            if result > datetime.now(UTC).date():
                 raise ValueError("Reporting date cannot be in the future")
             return result
         except ValueError:
